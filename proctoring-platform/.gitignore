@@ -1,0 +1,19 @@
+.env
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+bin/
+obj/
+*.db
+data/
+test-results/
+playwright-report/
+# Processing service: downloaded models and local data
+ai-service/models/
+ai-service/data/
+# Service-specific settings (templates are .env.example)
+**/.env
+# run-all.ps1: logs and the PIDs of the services it started
+.run/

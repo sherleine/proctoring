@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/session-create.request.v1.json",
+  "title": "Create session request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidateId", "examId"],
+  "properties": {
+    "candidateId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" },
+    "examId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" },
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "userAgent": { "type": "string", "maxLength": 512 },
+        "appVersion": { "type": "string", "maxLength": 32 }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/analysis-started.v1.json",
+  "title": "audio.analysis.started payload v1 (processing service -> backend)",
+  "description": "Sent when a worker starts analysing an event. Moves the event to PROCESSING. Contains no audio or results.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "eventId",
+    "startedAt",
+    "deliveryCount"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "sessionId": {
+      "type": "string"
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deliveryCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "How many times the worker group has received this event message (XPENDING delivery count)."
+    },
+    "worker": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Optional worker/consumer name, for diagnostics."
+    }
+  }
+}

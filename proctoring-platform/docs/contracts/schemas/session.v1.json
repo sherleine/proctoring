@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/session.v1.json",
+  "title": "Session v1 (backend -> browser)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "candidateId",
+    "examId",
+    "status",
+    "createdAt",
+    "endedAt",
+    "recordingPolicy"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ses_[A-Za-z0-9]{20,}$"
+    },
+    "sessionToken": {
+      "type": "string",
+      "minLength": 32,
+      "description": "Only present in the POST /sessions response (also on an idempotent replay, which re-issues the token).",
+      "pattern": "^tok_[A-Za-z0-9_-]{43}$"
+    },
+    "candidateId": {
+      "type": "string"
+    },
+    "examId": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "ended"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "recordingPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preEventSeconds",
+        "silenceSeconds",
+        "maxEventSeconds",
+        "splitOverlapSeconds",
+        "uploadVideo",
+        "maxUploadBytes"
+      ],
+      "properties": {
+        "preEventSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "silenceSeconds": {
+          "type": "number",
+          "minimum": 0.3,
+          "maximum": 5
+        },
+        "maxEventSeconds": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 30
+        },
+        "splitOverlapSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "uploadVideo": {
+          "type": "boolean"
+        },
+        "maxUploadBytes": {
+          "type": "integer",
+          "minimum": 1024
+        }
+      }
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Added in contract 1.1 (optional): when the session ends automatically."
+    },
+    "endReason": {
+      "enum": [
+        "candidate",
+        "expired",
+        null
+      ],
+      "description": "Added in contract 1.1 (optional): why the session ended; null while active."
+    }
+  }
+}

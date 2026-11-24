@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/event-status.v1.json",
+  "title": "Event status v1 (backend -> browser)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "sessionId",
+    "sequenceNumber",
+    "status",
+    "receivedAt",
+    "updatedAt",
+    "startedAt",
+    "durationSeconds",
+    "attempts",
+    "error",
+    "result"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sessionId": {
+      "type": "string"
+    },
+    "sequenceNumber": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": [
+        "RECEIVED",
+        "QUEUED",
+        "PROCESSING",
+        "COMPLETED",
+        "FAILED",
+        "DEAD_LETTERED"
+      ]
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "durationSeconds": {
+      "type": "number",
+      "description": "Measured by the server from the stored WAV."
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "AI deliveries so far."
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "result": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "analysis-result.v1.json"
+        }
+      ]
+    },
+    "endedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Added in contract 1.3 (optional): end of the clip (client clock)."
+    },
+    "audio": {
+      "description": "Added in contract 1.3 (optional): facts about the stored audio. Never contains storage paths.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "codec",
+        "sampleRate",
+        "channels",
+        "sizeBytes",
+        "sha256",
+        "retained"
+      ],
+      "properties": {
+        "format": {
+          "const": "wav"
+        },
+        "codec": {
+          "const": "pcm_s16le"
+        },
+        "sampleRate": {
+          "type": "integer"
+        },
+        "channels": {
+          "type": "integer"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 44
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "retained": {
+          "type": "boolean",
+          "description": "false once the audio was deleted by the retention policy"
+        }
+      }
+    }
+  }
+}

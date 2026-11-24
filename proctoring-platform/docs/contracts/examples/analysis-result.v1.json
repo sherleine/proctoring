@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0",
+  "eventId": "7f3c2a1e-5b6d-4c8e-9f0a-1b2c3d4e5f60",
+  "sessionId": "ses_01JABCDEFGHJKMNPQRSTVWXYZ",
+  "candidateId": "cand-123",
+  "status": "completed",
+  "processedAt": "2026-11-21T10:08:18.900Z",
+  "processingMs": 2410.5,
+  "models": {
+    "vad": "silero-vad-6.2",
+    "asr": "faster-whisper:small",
+    "diarization": "pyannote/speaker-diarization-community-1"
+  },
+  "audio": {
+    "durationSeconds": 5.8,
+    "sampleRate": 16000,
+    "rmsDbfs": -27.3,
+    "peakDbfs": -3.1
+  },
+  "speech": {
+    "available": true,
+    "reason": null,
+    "verified": true,
+    "speechSeconds": 2.9,
+    "speechRatio": 0.5,
+    "segments": [
+      {
+        "start": 2.4,
+        "end": 3.6
+      },
+      {
+        "start": 3.9,
+        "end": 5.6
+      }
+    ]
+  },
+  "transcription": {
+    "available": true,
+    "reason": null,
+    "language": "en",
+    "languageProbability": 0.97,
+    "text": "Can you help me with this question?",
+    "segments": [
+      {
+        "start": 2.4,
+        "end": 3.6,
+        "text": "Can you help me",
+        "speaker": "SPEAKER_00",
+        "avgLogprob": -0.21,
+        "noSpeechProb": 0.02
+      },
+      {
+        "start": 3.9,
+        "end": 5.6,
+        "text": "with this question?",
+        "speaker": "SPEAKER_01",
+        "avgLogprob": -0.35,
+        "noSpeechProb": 0.03
+      }
+    ]
+  },
+  "diarization": {
+    "available": true,
+    "reason": null,
+    "speakerCount": 2,
+    "turns": [
+      {
+        "start": 2.4,
+        "end": 3.6,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "start": 3.9,
+        "end": 5.6,
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "overlaps": []
+  },
+  "findings": [
+    {
+      "type": "MULTIPLE_VOICES",
+      "severity": "review",
+      "description": "Two distinct voices were detected. This may be another person, or audio from a TV, phone or speaker.",
+      "start": 2.4,
+      "end": 5.6,
+      "evidence": {
+        "speakerCount": 2,
+        "secondSpeakerSeconds": 1.7
+      }
+    }
+  ],
+  "error": null
+}

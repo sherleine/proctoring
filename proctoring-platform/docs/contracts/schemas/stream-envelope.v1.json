@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/stream-envelope.v1.json",
+  "title": "Redis stream entry envelope v1 (all fields are strings in Redis)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "messageId",
+    "correlationId",
+    "sessionId",
+    "eventId",
+    "producedAt",
+    "payload"
+  ],
+  "properties": {
+    "messageType": {
+      "enum": [
+        "audio.event.submitted",
+        "audio.analysis.started",
+        "audio.analysis.completed",
+        "audio.analysis.failed"
+      ]
+    },
+    "schemaVersion": {
+      "const": "1"
+    },
+    "messageId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sessionId": {
+      "type": "string"
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "producedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON document; schema depends on messageType."
+    }
+  }
+}

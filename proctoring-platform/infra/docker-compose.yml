@@ -1,0 +1,56 @@
+# Local infrastructure. Phase 4: Redis only (backend, processing service and frontend containers follow in Phase 8).
+#   docker compose -f infra/docker-compose.yml --env-file .env up -d
+#   docker compose -f infra/docker-compose.yml ps        # "healthy" when Redis answers PING
+name: proctoring
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    # Configuration file + optional password. With REDIS_PASSWORD empty, Redis runs without authentication
+    # (local development only).
+    command: ["sh", "-c", "exec redis-server /usr/local/etc/redis/redis.conf $${REDIS_PASSWORD:+--requirepass \"$$REDIS_PASSWORD\"}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    ports:
+      # Bound to localhost: Redis is not reachable from other machines.
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning $${REDIS_PASSWORD:+-a \"$$REDIS_PASSWORD\"} ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  # AI service in a container (optional; profile "ai"):
+  #   docker compose -f infra/docker-compose.yml --profile ai up -d --build
+  # Shared audio: the backend still runs on the host in this phase and writes WAVs to its AUDIO_STORE_PATH.
+  # A file inside one container is NOT visible in another, so that host folder is bind-mounted here
+  # READ-ONLY at /data/audio (the AI service's AUDIO_STORE_PATH). When the backend is containerized
+  # (Phase 8) both services mount one named volume instead (backend read-write, AI read-only).
+  ai-service:
+    profiles: ["ai"]
+    build: ../ai-service
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_CONNECTION: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      AUDIO_STORE_PATH: /data/audio
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      WHISPER_DEVICE: cpu
+      WHISPER_COMPUTE_TYPE: int8
+    volumes:
+      - ${AUDIO_STORE_HOST_PATH:-../backend/src/Proctoring.Api/data/audio}:/data/audio:ro
+      - ai-models:/models   # Hugging Face cache: models are downloaded once
+    ports:
+      - "127.0.0.1:8090:8090"
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  ai-models:

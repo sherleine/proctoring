@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/history/session.v1.0.json",
+  "title": "Session v1.0 (frozen copy of the Phase 1 contract, used for compatibility tests)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "candidateId",
+    "examId",
+    "status",
+    "createdAt",
+    "endedAt",
+    "recordingPolicy"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ses_[A-Za-z0-9]{20,}$"
+    },
+    "sessionToken": {
+      "type": "string",
+      "minLength": 32,
+      "description": "Only present in the POST /sessions response."
+    },
+    "candidateId": {
+      "type": "string"
+    },
+    "examId": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "ended"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "recordingPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preEventSeconds",
+        "silenceSeconds",
+        "maxEventSeconds",
+        "splitOverlapSeconds",
+        "uploadVideo",
+        "maxUploadBytes"
+      ],
+      "properties": {
+        "preEventSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "silenceSeconds": {
+          "type": "number",
+          "minimum": 0.3,
+          "maximum": 5
+        },
+        "maxEventSeconds": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 30
+        },
+        "splitOverlapSeconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "uploadVideo": {
+          "type": "boolean"
+        },
+        "maxUploadBytes": {
+          "type": "integer",
+          "minimum": 1024
+        }
+      }
+    }
+  }
+}

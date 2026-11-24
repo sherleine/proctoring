@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://proctoring.local/schemas/analysis-result.v1.json",
+  "title": "Audio analysis result v1 (AI -> backend -> browser)",
+  "description": "Every value comes from model output. Unavailable stages report available=false with a reason. Findings are observations for human review, not evidence of misconduct.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "eventId", "sessionId", "candidateId", "status", "processedAt", "processingMs", "models", "audio", "speech", "transcription", "diarization", "findings", "error"],
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] }
+      }
+    },
+    "span": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": { "start": { "type": "number", "minimum": 0 }, "end": { "type": "number", "minimum": 0 } }
+    }
+  },
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "eventId": { "type": "string", "format": "uuid" },
+    "sessionId": { "type": "string" },
+    "candidateId": { "type": "string" },
+    "status": { "enum": ["completed", "failed"] },
+    "processedAt": { "type": "string", "format": "date-time" },
+    "processingMs": { "type": "number", "minimum": 0 },
+    "models": {
+      "type": "object",
+      "description": "Model identifiers actually used, e.g. {\"vad\":\"silero-vad-6.2\",\"asr\":\"faster-whisper:small\",\"diarization\":\"pyannote/speaker-diarization-community-1\"}",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "audio": {
+      "type": ["object", "null"],
+      "required": ["durationSeconds", "sampleRate", "rmsDbfs", "peakDbfs"],
+      "properties": {
+        "durationSeconds": { "type": "number" },
+        "sampleRate": { "type": "integer" },
+        "rmsDbfs": { "type": "number" },
+        "peakDbfs": { "type": "number" }
+      }
+    },
+    "speech": {
+      "allOf": [{ "$ref": "#/$defs/stage" }],
+      "properties": {
+        "verified": { "type": "boolean" },
+        "speechSeconds": { "type": "number" },
+        "speechRatio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "segments": { "type": "array", "items": { "$ref": "#/$defs/span" } }
+      }
+    },
+    "transcription": {
+      "allOf": [{ "$ref": "#/$defs/stage" }],
+      "properties": {
+        "language": { "type": ["string", "null"] },
+        "languageProbability": { "type": ["number", "null"], "description": "As reported by the model." },
+        "text": { "type": "string" },
+        "segments": {
+          "type": "array",
+          "items": {
+            "allOf": [{ "$ref": "#/$defs/span" }],
+            "properties": {
+              "text": { "type": "string" },
+              "speaker": { "type": ["string", "null"] },
+              "avgLogprob": { "type": ["number", "null"], "description": "Raw decoder statistic, not a calibrated confidence." },
+              "noSpeechProb": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "diarization": {
+      "allOf": [{ "$ref": "#/$defs/stage" }],
+      "properties": {
+        "speakerCount": { "type": ["integer", "null"] },
+        "turns": {
+          "type": "array",
+          "items": { "allOf": [{ "$ref": "#/$defs/span" }], "properties": { "speaker": { "type": "string" } }, "required": ["speaker"] }
+        },
+        "overlaps": { "type": "array", "items": { "$ref": "#/$defs/span" } }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "severity", "description", "start", "end", "evidence"],
+        "properties": {
+          "type": {
+            "enum": ["CANDIDATE_SPEECH", "MULTIPLE_VOICES", "BACKGROUND_CONVERSATION", "OVERLAPPING_SPEECH", "POSSIBLE_VERBAL_ASSISTANCE", "UNUSUAL_AUDIO", "NO_SPEECH_VERIFIED"]
+          },
+          "severity": { "enum": ["info", "review"] },
+          "description": { "type": "string" },
+          "start": { "type": ["number", "null"] },
+          "end": { "type": ["number", "null"] },
+          "evidence": { "type": "object", "description": "The measurements the rule used." }
+        }
+      }
+    },
+    "error": {
+      "type": ["object", "null"],
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" },
+        "deliveryCount": { "type": "integer" }
+      }
+    }
+  }
+}

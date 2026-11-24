@@ -1,0 +1,8 @@
+{
+  "candidateId": "cand-123",
+  "examId": "exam-42",
+  "client": {
+    "userAgent": "Mozilla/5.0",
+    "appVersion": "0.1.0"
+  }
+}
