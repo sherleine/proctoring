@@ -18,3 +18,5 @@ ai-service/data/
 **/.env
 # run-all.ps1: logs and the PIDs of the services it started
 .run/
+# Silero model copied from node_modules by scripts/copy-assets.mjs on dev/build
+frontend/public/models/

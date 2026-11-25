@@ -39,7 +39,6 @@ public sealed class AudioEventService(
     ILogger<AudioEventService> logger)
 {
     public const string MetadataSchema = "audio-event-metadata.v1.json";
-    public const double EnrolmentMaxSeconds = 30;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private readonly AudioEventOptions _options = eventOptions.Value;
 
@@ -225,8 +224,7 @@ public sealed class AudioEventService(
         var errors = new Dictionary<string, string[]>();
         void Add(string key, string message) => errors[key] = [message];
         var tolerance = _options.DurationToleranceSeconds;
-        // The voice sample (enrolment, contract 1.1) is longer than a speech event: up to the schema's 30 s.
-        var maxSeconds = m.EventType == "enrolment" ? EnrolmentMaxSeconds : policy.Value.MaxEventSeconds + 1;
+        var maxSeconds = policy.Value.MaxEventSeconds + 1;
 
         if (wav.DurationSeconds < _options.MinDurationSeconds)
             Add("audio", $"The audio is too short ({wav.DurationSeconds:0.000} s; minimum {_options.MinDurationSeconds} s)");

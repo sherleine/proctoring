@@ -72,7 +72,6 @@ async function runScenario(name, audioFile, { expectEvents, waitMs, failUploads 
     await page.waitForFunction(() => document.body.innerText.includes("Speech detection: active"), { timeout: 30_000 });
     const t0 = Date.now();
 
-   
     if (expectEvents > 0) {
       await page.waitForFunction(
         (n) => [...document.querySelectorAll(".event")].filter((e) => /Audio saved \(analysed/.test(e.innerText.replace(/\s+/g, " "))).length >= n,

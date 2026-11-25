@@ -19,13 +19,6 @@ class AudioRef(BaseModel):
     key: str | None = None  # path relative to the audio store root
 
 
-class SpeakerReference(BaseModel):
-    """The session's accepted candidate voice reference (contract 1.1), added by the backend to speech events."""
-    embedding: list[float]
-    model: str
-    enrolmentEventId: str
-
-
 class AudioEventMessage(BaseModel):
     """Envelope + payload of one event, after contract validation."""
     messageId: str
@@ -35,19 +28,10 @@ class AudioEventMessage(BaseModel):
     examId: str
     event: dict  # browser metadata (audio-event-metadata.v1.json)
     audioRef: AudioRef
-    speakerReference: SpeakerReference | None = None
 
     @property
     def duration_seconds(self) -> float:
         return float(self.event["durationSeconds"])
-
-    @property
-    def event_type(self) -> str:
-        return str(self.event.get("eventType", "speech"))
-
-    @property
-    def is_enrolment(self) -> bool:
-        return self.event_type == "enrolment"
 
 
 def parse_event_entry(fields: dict[str, str]) -> AudioEventMessage:
@@ -73,6 +57,4 @@ def parse_event_entry(fields: dict[str, str]) -> AudioEventMessage:
         raise PermanentEventError("INVALID_MESSAGE", "audioRef.key is required by this service")
     return AudioEventMessage(messageId=fields["messageId"], sessionId=fields["sessionId"], eventId=fields["eventId"],
                              candidateId=payload["candidateId"], examId=payload["examId"],
-                             event=payload["event"], audioRef=AudioRef(**payload["audioRef"]),
-                             speakerReference=SpeakerReference(**payload["speakerReference"])
-                             if payload.get("speakerReference") else None)
+                             event=payload["event"], audioRef=AudioRef(**payload["audioRef"]))

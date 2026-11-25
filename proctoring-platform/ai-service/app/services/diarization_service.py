@@ -2,10 +2,10 @@
 
 Why only the SEGMENTATION step of pyannote/speaker-diarization-community-1:
 the full pipeline ends with a clustering step that needs more speech per speaker than an event clip (<= 10 s)
-contains. In the Phase 2 probe (docs/results/phase2-pyannote-benchmark.md, LibriSpeech calibration speakers)
+contains. In the Phase 2 probe (docs/history/results/phase2-pyannote-benchmark.md, LibriSpeech calibration speakers)
 the full pipeline found the second speaker of a turn-taking clip in 1/20 clips, while its segmentation model found it
 in 17/20, and overlap in 18-20/20. So this service uses the pipeline's segmentation output (up to 3 local speakers
-per 10 s window, with overlap) and leaves WHO each speaker is to the CAM++ comparison with the enrolled voice.
+per 10 s window, with overlap); whether two speakers have different voices is checked with CAM++ embeddings.
 
 What it returns (all times in seconds inside the clip):
   * speakers: anonymous local labels S1, S2, ... ordered by first appearance - NOT identities; the first speaker is

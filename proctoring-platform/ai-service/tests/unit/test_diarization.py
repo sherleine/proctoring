@@ -9,7 +9,7 @@ from app.schemas.contracts import ANALYSIS_RESULT, validation_errors
 from app.services.audio_loader import AudioStore
 from app.services.diarization_service import DiarizationConfig, DiarizationResult, DiarizationService, SpeakerInfo
 from app.services.processing_pipeline import ProcessingPipeline
-from app.services.speaker_service import SpeakerService, SpeakerThresholds
+from app.services.speaker_service import SpeakerService
 from tests.helpers import FakeVad, event_entry, put_audio, wav_bytes
 
 SR = 16_000
@@ -92,8 +92,8 @@ def test_speaker_level_is_measured_on_exclusive_speech():
 
 # ------------------------------------------------------------------ pipeline with a fake diarizer
 
-CANDIDATE, OTHER = np.eye(16, dtype=np.float32)[0], np.eye(16, dtype=np.float32)[1]
-REFERENCE = {"embedding": CANDIDATE.tolist(), "model": "campplus-test", "enrolmentEventId": "00000000-0000-4000-8000-000000000001"}
+# Voices are encoded in the audio: a positive DC offset = voice A, negative = voice B.
+VOICE_A, VOICE_B = np.eye(16, dtype=np.float32)[0], np.eye(16, dtype=np.float32)[1]
 
 
 class FakeDiarizer:
@@ -110,10 +110,10 @@ class FakeDiarizer:
 
 
 def speaker():
-    svc = SpeakerService("unused.onnx", SpeakerThresholds(same=0.4028, different=0.3188))
+    svc = SpeakerService("unused.onnx")
     svc._extractor = object()
     svc.model_id = "campplus-test"
-    svc.embed = lambda x: CANDIDATE if float(np.mean(x)) >= 0 else OTHER
+    svc.embed = lambda x: VOICE_A if float(np.mean(x)) >= 0 else VOICE_B
     return svc
 
 
@@ -125,7 +125,7 @@ def voice(seconds, sign=1.0):
 def run(store_root, clip, diarization: DiarizationResult):
     data = wav_bytes(np.clip(clip, -1, 1))
     sid, key = put_audio(store_root, data)
-    entry = event_entry(sid, key, data, duration=round(len(clip) / SR, 3), speaker_reference=REFERENCE)
+    entry = event_entry(sid, key, data, duration=round(len(clip) / SR, 3))
     diarizer = FakeDiarizer(diarization)
     payload = ProcessingPipeline(AudioStore(store_root), FakeVad(), None, speaker(), diarizer).process(
         parse_event_entry(entry)).to_payload()
@@ -138,39 +138,33 @@ def info(label, exclusive):
     return SpeakerInfo(label, secs, secs, -20.0, exclusive)
 
 
-def test_pause_split_candidate_speech_is_compared_as_one_speaker(store_root):
-    # A speaks 0-1.4 and 2.2-3.4 (two pieces < 1.5 s each), then B 4.4-8.0 - the case region-based comparison missed
+def review(payload):
+    return sorted(o["observationType"] for o in payload["observations"] if o["category"] == "review")
+
+
+def test_speech_split_by_pauses_is_compared_as_one_speaker(store_root):
+    # A speaks 0-1.4 and 2.2-3.4 (two pieces < 1.5 s each, together 2.6 s), then B 4.4-8.0
     clip = np.concatenate([voice(1.4), np.zeros(int(SR * 0.8), np.float32), voice(1.2), np.zeros(SR, np.float32),
                            voice(3.6, sign=-1)])
     d = DiarizationResult(turns=[(0.0, 1.4, "S1"), (2.2, 3.4, "S1"), (4.4, 8.0, "S2")], overlaps=[],
                           speakers=[info("S1", [(0.0, 1.4), (2.2, 3.4)]), info("S2", [(4.4, 8.0)])])
     payload, diarizer = run(store_root, clip, d)
     assert diarizer.calls == 1
-    roles = {s["speaker"]: s["voice"] for s in payload["diarization"]["speakers"]}
-    assert roles == {"S1": "LIKELY_CANDIDATE", "S2": "LIKELY_NON_CANDIDATE"}
+    roles = {s["speaker"]: s["role"] for s in payload["diarization"]["speakers"]}
+    assert roles == {"S1": "other", "S2": "main"} or roles == {"S1": "main", "S2": "other"}
     assert payload["diarization"]["distinctVoices"] == 2 and payload["diarization"]["speakerCount"] == 2
-    review = sorted(o["observationType"] for o in payload["observations"] if o["category"] == "review")
-    assert review == ["MULTIPLE_SPEAKERS_DETECTED", "NON_CANDIDATE_VOICE"]
+    assert review(payload) == ["MULTIPLE_SPEAKERS_DETECTED"]
     assert payload["models"]["diarization"] == "fake-diarizer"
 
 
-def test_two_diarized_speakers_with_the_candidate_voice_are_one_person(store_root):
+def test_two_diarized_speakers_with_the_same_voice_are_one_person(store_root):
     clip = np.concatenate([voice(4), np.zeros(SR, np.float32), voice(4)])
     d = DiarizationResult(turns=[(0.0, 4.0, "S1"), (5.0, 9.0, "S2")], overlaps=[],
                           speakers=[info("S1", [(0.0, 4.0)]), info("S2", [(5.0, 9.0)])])
     payload, _ = run(store_root, clip, d)
     assert payload["diarization"]["speakerCount"] == 2 and payload["diarization"]["distinctVoices"] == 1
-    assert [o for o in payload["observations"] if o["category"] == "review"] == []
-
-
-def test_a_speaker_heard_only_in_overlap_is_not_identified(store_root):
-    clip = voice(8)
-    d = DiarizationResult(turns=[(0.0, 8.0, "S1"), (3.0, 6.0, "S2")], overlaps=[(3.0, 6.0)],
-                          speakers=[info("S1", [(0.0, 3.0), (6.0, 8.0)]), SpeakerInfo("S2", 3.0, 0.0, None, [])])
-    payload, _ = run(store_root, clip, d)
-    roles = {s["speaker"]: s["voice"] for s in payload["diarization"]["speakers"]}
-    assert roles == {"S1": "LIKELY_CANDIDATE", "S2": "UNCERTAIN"}
-    assert payload["diarization"]["overlaps"] == [{"start": 3.0, "end": 6.0}]
+    assert {s["role"] for s in payload["diarization"]["speakers"]} == {"main"}
+    assert review(payload) == []
 
 
 def test_too_little_speech_is_not_diarized(store_root):

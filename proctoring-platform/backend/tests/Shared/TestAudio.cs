@@ -42,15 +42,14 @@ public static class TestAudio
     public static string Sha256(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
 
     /// <summary>Metadata valid against audio-event-metadata.v1.json for <paramref name="wav"/>.</summary>
-    public static JsonObject Metadata(byte[] wav, Guid eventId, DateTime startedAtUtc, double? durationSeconds = null, int sequence = 0,
-        string eventType = "speech")
+    public static JsonObject Metadata(byte[] wav, Guid eventId, DateTime startedAtUtc, double? durationSeconds = null, int sequence = 0)
     {
         var duration = durationSeconds ?? (wav.Length - 44) / 32000.0;
         return new JsonObject
         {
             ["schemaVersion"] = "1.0",
             ["eventId"] = eventId.ToString(),
-            ["eventType"] = eventType,
+            ["eventType"] = "speech",
             ["sequenceNumber"] = sequence,
             ["part"] = new JsonObject { ["groupId"] = Guid.NewGuid().ToString(), ["index"] = 0, ["isFinal"] = true, ["overlapSeconds"] = 0 },
             ["startedAt"] = Iso(startedAtUtc),
@@ -60,7 +59,7 @@ public static class TestAudio
             ["preEventSeconds"] = Math.Min(0.5, duration / 2),
             ["trigger"] = new JsonObject
             {
-                ["type"] = eventType == "enrolment" ? "enrolment" : "vad", ["model"] = "silero-vad-v5", ["startThreshold"] = 0.5, ["endThreshold"] = 0.35,
+                ["type"] = "vad", ["model"] = "silero-vad-v5", ["startThreshold"] = 0.5, ["endThreshold"] = 0.35,
                 ["maxProbability"] = 0.97, ["speechSeconds"] = duration / 2, ["noiseFloorDbfs"] = -60.0,
             },
             ["audio"] = new JsonObject

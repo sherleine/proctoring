@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Proctoring.Application.Events;
 using Proctoring.Domain.Events;
-using Proctoring.Domain.Sessions;
 
 namespace Proctoring.Infrastructure.Persistence;
 
@@ -33,27 +32,6 @@ internal sealed class AudioObservationConfiguration : IEntityTypeConfiguration<A
     }
 }
 
-internal sealed class SessionVoiceprintConfiguration : IEntityTypeConfiguration<SessionVoiceprint>
-{
-    public void Configure(EntityTypeBuilder<SessionVoiceprint> b)
-    {
-        b.ToTable("session_voiceprints");
-        b.HasKey(v => v.SessionId);
-        b.Property(v => v.SessionId).HasColumnName("session_id").HasMaxLength(40);
-        b.Property(v => v.EnrolmentEventId).HasColumnName("enrolment_event_id");
-        b.Property(v => v.Status).HasColumnName("status").HasMaxLength(16).IsRequired();
-        b.Property(v => v.Reason).HasColumnName("reason").HasMaxLength(500);
-        b.Property(v => v.SpeechSeconds).HasColumnName("speech_seconds");
-        b.Property(v => v.EmbeddingJson).HasColumnName("embedding_json");
-        b.Property(v => v.Model).HasColumnName("model").HasMaxLength(128).IsRequired();
-        b.Property(v => v.CreatedAt).HasColumnName("created_at");
-        b.Property(v => v.UpdatedAt).HasColumnName("updated_at");
-        b.Ignore(v => v.IsUsable);
-        b.HasOne<Session>().WithOne().HasForeignKey<SessionVoiceprint>(v => v.SessionId).OnDelete(DeleteBehavior.Cascade);
-        b.HasIndex(v => v.UpdatedAt).HasDatabaseName("ix_session_voiceprints_updated");
-    }
-}
-
 public sealed class EfObservationRepository(ProctoringDbContext db) : IObservationRepository
 {
     public Task<bool> ExistsAsync(Guid observationId, CancellationToken ct) =>
@@ -72,15 +50,4 @@ public sealed class EfObservationRepository(ProctoringDbContext db) : IObservati
             .OrderBy(o => o.OccurredAt).ThenBy(o => o.StartSeconds)
             .Take(max)
             .ToListAsync(ct);
-}
-
-public sealed class EfVoiceprintRepository(ProctoringDbContext db) : IVoiceprintRepository
-{
-    public Task<SessionVoiceprint?> FindAsync(string sessionId, CancellationToken ct) =>
-        db.Voiceprints.FirstOrDefaultAsync(v => v.SessionId == sessionId, ct);
-
-    public void Add(SessionVoiceprint voiceprint) => db.Voiceprints.Add(voiceprint);
-
-    public Task<int> DeleteUpdatedBeforeAsync(DateTime cutoffUtc, CancellationToken ct) =>
-        db.Voiceprints.Where(v => v.UpdatedAt < cutoffUtc).ExecuteDeleteAsync(ct);
 }

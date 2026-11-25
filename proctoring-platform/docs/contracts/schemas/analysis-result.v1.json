@@ -94,7 +94,6 @@
             "MULTIPLE_SPEAKERS_DETECTED",
             "OVERLAPPING_SPEECH_DETECTED",
             "BACKGROUND_CONVERSATION_DETECTED",
-            "NON_CANDIDATE_VOICE",
             "POSSIBLE_EXTERNAL_ASSISTANCE",
             "SPEECH_DETECTED",
             "NO_SPEECH_DETECTED",
@@ -161,7 +160,7 @@
         "1.0",
         "1.1"
       ],
-      "description": "1.1 adds the optional enrolment, speaker and observations sections."
+      "description": "1.1 adds the optional observations section and the diarization details."
     },
     "eventId": {
       "type": "string",
@@ -347,7 +346,7 @@
         },
         "speakers": {
           "type": "array",
-          "description": "Contract 1.1 (optional): one entry per anonymous diarized speaker (S1, S2... by first appearance; never an identity). voice = CAM++ comparison of that speaker's non-overlapping speech with the enrolled candidate voice.",
+          "description": "Contract 1.1 (optional): one entry per anonymous diarized speaker (S1, S2... by first appearance). Nobody is identified. role: main (most non-overlapping speech, or the same voice as it), other (clearly different voice), background (much quieter voice), uncertain.",
           "items": {
             "type": "object",
             "required": [
@@ -369,12 +368,16 @@
                   "null"
                 ]
               },
-              "voice": {
+              "role": {
                 "enum": [
-                  "LIKELY_CANDIDATE",
-                  "LIKELY_NON_CANDIDATE",
-                  "UNCERTAIN"
+                  "main",
+                  "other",
+                  "background",
+                  "uncertain"
                 ]
+              },
+              "main": {
+                "type": "boolean"
               }
             }
           }
@@ -384,7 +387,7 @@
             "integer",
             "null"
           ],
-          "description": "Contract 1.1 (optional): distinct voices supported by the voice comparison (diarized speakers that all match the candidate count as one); null when undecided."
+          "description": "Contract 1.1 (optional): distinct voices supported by the voice comparison between the diarized speakers; null when the voices could not be compared."
         }
       }
     },
@@ -472,152 +475,6 @@
         "$ref": "#/$defs/observation"
       },
       "description": "Contract 1.1 (optional). Empty when nothing needs review."
-    },
-    "enrolment": {
-      "type": [
-        "object",
-        "null"
-      ],
-      "description": "Contract 1.1 (optional): only for eventType=enrolment. The embedding travels only on the internal stream; the backend stores it separately and removes it before results reach browsers.",
-      "additionalProperties": false,
-      "required": [
-        "status",
-        "reason",
-        "speechSeconds",
-        "embedding",
-        "embeddingModel"
-      ],
-      "properties": {
-        "status": {
-          "enum": [
-            "accepted",
-            "uncertain",
-            "rejected"
-          ]
-        },
-        "reason": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "speechSeconds": {
-          "type": "number",
-          "minimum": 0
-        },
-        "windows": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "selfConsistency": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "minWindowSimilarity": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "speechRmsDbfs": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "clippedRatio": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "embedding": {
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "number"
-          },
-          "maxItems": 4096
-        },
-        "embeddingStored": {
-          "type": "boolean",
-          "description": "Set by the backend after removing the embedding."
-        },
-        "embeddingModel": {
-          "type": "string",
-          "maxLength": 128
-        }
-      }
-    },
-    "speaker": {
-      "description": "Contract 1.1 (optional): comparison of speech regions with the candidate voice reference.",
-      "allOf": [
-        {
-          "$ref": "#/$defs/stage"
-        }
-      ],
-      "properties": {
-        "reference": {
-          "enum": [
-            "present",
-            "missing"
-          ]
-        },
-        "model": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "thresholds": {
-          "type": [
-            "object",
-            "null"
-          ]
-        },
-        "comparisons": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "start",
-              "end",
-              "similarity",
-              "decision"
-            ],
-            "properties": {
-              "start": {
-                "type": "number"
-              },
-              "end": {
-                "type": "number"
-              },
-              "similarity": {
-                "type": [
-                  "number",
-                  "null"
-                ]
-              },
-              "decision": {
-                "enum": [
-                  "LIKELY_CANDIDATE",
-                  "LIKELY_NON_CANDIDATE",
-                  "UNCERTAIN"
-                ]
-              },
-              "reason": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              }
-            }
-          }
-        }
-      }
     }
   }
 }

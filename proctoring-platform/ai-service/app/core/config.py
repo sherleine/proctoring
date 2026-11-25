@@ -51,8 +51,6 @@ class Settings(BaseSettings):
     speaker_same_threshold: float = Field(0.4028, alias="SPEAKER_SAME_THRESHOLD", ge=-1, le=1)
     speaker_different_threshold: float = Field(0.3188, alias="SPEAKER_DIFFERENT_THRESHOLD", ge=-1, le=1)
     speaker_min_segment_seconds: float = Field(1.5, alias="SPEAKER_MIN_SEGMENT_SECONDS", gt=0)
-    speaker_min_non_candidate_seconds: float = Field(3.0, alias="SPEAKER_MIN_NON_CANDIDATE_SECONDS", gt=0)
-    enrolment_min_speech_seconds: float = Field(8.0, alias="ENROLMENT_MIN_SPEECH_SECONDS", gt=0)
     speaker_threads: int = Field(2, alias="SPEAKER_THREADS", ge=1, le=8)
 
     

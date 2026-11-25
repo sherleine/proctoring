@@ -87,8 +87,7 @@ def iso(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
 
-def event_entry(session_id: str, key: str, data: bytes, event_id: str | None = None, duration: float = 2.0,
-                event_type: str = "speech", speaker_reference: dict | None = None) -> dict[str, str]:
+def event_entry(session_id: str, key: str, data: bytes, event_id: str | None = None, duration: float = 2.0) -> dict[str, str]:
     """A contract-valid `audio.event.submitted` stream entry (the 8 envelope fields)."""
     event_id = event_id or str(uuid.uuid4())
     start = datetime(2026, 11, 23, 10, 0, 0, tzinfo=timezone.utc)
@@ -96,11 +95,11 @@ def event_entry(session_id: str, key: str, data: bytes, event_id: str | None = N
     payload = {
         "sessionId": session_id, "candidateId": "cand-1", "examId": "exam-1",
         "event": {
-            "schemaVersion": "1.0", "eventId": event_id, "eventType": event_type, "sequenceNumber": 0,
+            "schemaVersion": "1.0", "eventId": event_id, "eventType": "speech", "sequenceNumber": 0,
             "part": {"groupId": str(uuid.uuid4()), "index": 0, "isFinal": True, "overlapSeconds": 0},
             "startedAt": iso(start), "endedAt": iso(start + timedelta(seconds=duration)),
             "speechStartedAt": iso(start + timedelta(seconds=0.5)), "durationSeconds": duration, "preEventSeconds": 0.5,
-            "trigger": {"type": "enrolment" if event_type == "enrolment" else "vad", "model": "silero-vad-v5", "startThreshold": 0.5, "endThreshold": 0.35,
+            "trigger": {"type": "vad", "model": "silero-vad-v5", "startThreshold": 0.5, "endThreshold": 0.35,
                         "maxProbability": 0.97, "speechSeconds": 1.0, "noiseFloorDbfs": -60.0},
             "audio": {"format": "wav", "codec": "pcm_s16le", "sampleRate": 16000, "channels": 1,
                       "sizeBytes": len(data), "sha256": sha},
@@ -109,8 +108,6 @@ def event_entry(session_id: str, key: str, data: bytes, event_id: str | None = N
         "audioRef": {"storage": "file", "uri": f"file:///backend-only/{key}", "sha256": sha,
                      "sizeBytes": len(data), "contentType": "audio/wav", "key": key},
     }
-    if speaker_reference is not None:
-        payload["speakerReference"] = speaker_reference
     return {"messageType": "audio.event.submitted", "schemaVersion": "1", "messageId": str(uuid.uuid4()),
             "correlationId": event_id, "sessionId": session_id, "eventId": event_id,
             "producedAt": iso(datetime.now(timezone.utc)), "payload": json.dumps(payload)}

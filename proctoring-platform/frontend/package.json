@@ -10,6 +10,7 @@
     "prebuild": "node scripts/copy-assets.mjs",
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "pretest": "node scripts/copy-assets.mjs",
     "test": "vitest run",
     "e2e": "node scripts/e2e-browser.mjs"
   },

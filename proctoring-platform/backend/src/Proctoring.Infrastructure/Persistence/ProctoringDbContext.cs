@@ -13,7 +13,6 @@ public sealed class ProctoringDbContext(DbContextOptions<ProctoringDbContext> op
     public DbSet<AudioEvent> AudioEvents => Set<AudioEvent>();
     public DbSet<EventUpdate> EventUpdates => Set<EventUpdate>();
     public DbSet<AudioObservation> Observations => Set<AudioObservation>();
-    public DbSet<SessionVoiceprint> Voiceprints => Set<SessionVoiceprint>();
 
     /// <summary>Shadow concurrency column of audio_events.</summary>
     public const string VersionProperty = "Version";
@@ -27,7 +26,6 @@ public sealed class ProctoringDbContext(DbContextOptions<ProctoringDbContext> op
         modelBuilder.ApplyConfiguration(new AudioEventConfiguration());
         modelBuilder.ApplyConfiguration(new EventUpdateConfiguration());
         modelBuilder.ApplyConfiguration(new AudioObservationConfiguration());
-        modelBuilder.ApplyConfiguration(new SessionVoiceprintConfiguration());
     }
 
     // Every save that adds an event or changes its status/result/error/audio also appends a change-log entry.

@@ -8,7 +8,6 @@
       "diarizedSpeakersCorrect": 0.95,
       "distinctVoicesCorrect": 1.0,
       "multipleSpeakersObservation": 0.0,
-      "nonCandidateObservation": 0.0,
       "overlappingSpeechObservation": 0.0,
       "backgroundObservation": 0.0,
       "assistanceObservation": 0.0,
@@ -16,13 +15,12 @@
       "meanDER_collar0": 0.1271,
       "overlapPrecision": null,
       "overlapRecall": null,
-      "medianSeconds": 0.319
+      "medianSeconds": 0.285
     },
     "turns": {
       "diarizedSpeakersCorrect": 0.85,
       "distinctVoicesCorrect": 0.85,
       "multipleSpeakersObservation": 0.85,
-      "nonCandidateObservation": 0.85,
       "overlappingSpeechObservation": 0.0,
       "backgroundObservation": 0.0,
       "assistanceObservation": 0.0,
@@ -30,27 +28,25 @@
       "meanDER_collar0": 0.1631,
       "overlapPrecision": null,
       "overlapRecall": null,
-      "medianSeconds": 0.312
+      "medianSeconds": 0.26
     },
     "pausesplit": {
       "diarizedSpeakersCorrect": 0.7,
       "distinctVoicesCorrect": 0.65,
       "multipleSpeakersObservation": 0.65,
-      "nonCandidateObservation": 0.65,
       "overlappingSpeechObservation": 0.0,
       "backgroundObservation": 0.0,
       "assistanceObservation": 0.0,
-      "anyReviewObservation": 0.75,
+      "anyReviewObservation": 0.65,
       "meanDER_collar0": 0.2503,
       "overlapPrecision": null,
       "overlapRecall": null,
-      "medianSeconds": 0.251
+      "medianSeconds": 0.211
     },
     "overlap": {
       "diarizedSpeakersCorrect": 0.95,
       "distinctVoicesCorrect": 0.05,
       "multipleSpeakersObservation": 1.0,
-      "nonCandidateObservation": 0.0,
       "overlappingSpeechObservation": 1.0,
       "backgroundObservation": 0.2,
       "assistanceObservation": 0.0,
@@ -58,13 +54,12 @@
       "meanDER_collar0": 0.135,
       "overlapPrecision": 0.875,
       "overlapRecall": 0.914,
-      "medianSeconds": 0.285
+      "medianSeconds": 0.244
     },
     "background10": {
       "diarizedSpeakersCorrect": 0.85,
       "distinctVoicesCorrect": 0.05,
       "multipleSpeakersObservation": 0.75,
-      "nonCandidateObservation": 0.0,
       "overlappingSpeechObservation": 0.75,
       "backgroundObservation": 0.3,
       "assistanceObservation": 0.0,
@@ -72,13 +67,12 @@
       "meanDER_collar0": 0.2319,
       "overlapPrecision": 0.892,
       "overlapRecall": 0.549,
-      "medianSeconds": 0.267
+      "medianSeconds": 0.231
     },
     "background": {
       "diarizedSpeakersCorrect": 0.2,
       "distinctVoicesCorrect": 0.0,
       "multipleSpeakersObservation": 0.2,
-      "nonCandidateObservation": 0.0,
       "overlappingSpeechObservation": 0.2,
       "backgroundObservation": 0.15,
       "assistanceObservation": 0.0,
@@ -86,36 +80,35 @@
       "meanDER_collar0": 0.403,
       "overlapPrecision": 0.972,
       "overlapRecall": 0.088,
-      "medianSeconds": 0.297
+      "medianSeconds": 0.277
     },
     "bgalone10": {
       "diarizedSpeakersCorrect": 0.8,
       "distinctVoicesCorrect": 0.8,
       "multipleSpeakersObservation": 0.8,
-      "nonCandidateObservation": 0.8,
       "overlappingSpeechObservation": 0.0,
-      "backgroundObservation": 0.4,
+      "backgroundObservation": 0.15,
       "assistanceObservation": 0.0,
       "anyReviewObservation": 0.8,
       "meanDER_collar0": 0.1911,
       "overlapPrecision": null,
       "overlapRecall": null,
-      "medianSeconds": 0.307
+      "medianSeconds": 0.281
     },
     "bgalone20": {
       "diarizedSpeakersCorrect": 0.95,
       "distinctVoicesCorrect": 0.95,
       "multipleSpeakersObservation": 0.95,
-      "nonCandidateObservation": 0.9,
       "overlappingSpeechObservation": 0.0,
-      "backgroundObservation": 0.95,
+      "backgroundObservation": 0.4,
       "assistanceObservation": 0.0,
       "anyReviewObservation": 0.95,
       "meanDER_collar0": 0.1386,
       "overlapPrecision": null,
       "overlapRecall": null,
-      "medianSeconds": 0.311
-    }
+      "medianSeconds": 0.253
+    },
+    "note": "No voice sample used (current configuration); synthetic LibriSpeech mixtures, held-out speakers."
   },
   "rows": [
     {
@@ -126,7 +119,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5175,
@@ -134,8 +127,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.322,
-      "enrolment": "accepted"
+      "seconds": 0.313
     },
     {
       "speaker": "1188",
@@ -145,20 +137,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0835,
       "der25": 0.0236,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.287,
-      "enrolment": "accepted"
+      "seconds": 0.297
     },
     {
       "speaker": "1188",
@@ -168,20 +158,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1245,
       "der25": 0.0252,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.21,
-      "enrolment": "accepted"
+      "seconds": 0.208
     },
     {
       "speaker": "1188",
@@ -191,7 +179,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -203,8 +191,7 @@
       "truthOverlap": 2.92,
       "hypOverlap": 3.55,
       "overlapTP": 2.84,
-      "seconds": 0.301,
-      "enrolment": "accepted"
+      "seconds": 0.205
     },
     {
       "speaker": "1188",
@@ -214,7 +201,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.513,
@@ -222,8 +209,7 @@
       "truthOverlap": 5.66,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.295,
-      "enrolment": "accepted"
+      "seconds": 0.234
     },
     {
       "speaker": "1188",
@@ -233,7 +219,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.515,
@@ -241,8 +227,7 @@
       "truthOverlap": 5.66,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.298,
-      "enrolment": "accepted"
+      "seconds": 0.248
     },
     {
       "speaker": "1188",
@@ -252,21 +237,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0737,
       "der25": 0.0363,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.315,
-      "enrolment": "accepted"
+      "seconds": 0.23
     },
     {
       "speaker": "1188",
@@ -276,21 +258,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0799,
       "der25": 0.0363,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.349,
-      "enrolment": "accepted"
+      "seconds": 0.265
     },
     {
       "speaker": "1221",
@@ -300,7 +279,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0083,
@@ -308,8 +287,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.33,
-      "enrolment": "accepted"
+      "seconds": 0.232
     },
     {
       "speaker": "1221",
@@ -319,20 +297,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0572,
       "der25": 0.0322,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.318,
-      "enrolment": "accepted"
+      "seconds": 0.264
     },
     {
       "speaker": "1221",
@@ -342,20 +318,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0277,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.263,
-      "enrolment": "accepted"
+      "seconds": 0.217
     },
     {
       "speaker": "1221",
@@ -365,7 +339,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -377,8 +351,7 @@
       "truthOverlap": 3.65,
       "hypOverlap": 3.85,
       "overlapTP": 3.65,
-      "seconds": 0.307,
-      "enrolment": "accepted"
+      "seconds": 0.226
     },
     {
       "speaker": "1221",
@@ -388,7 +361,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -400,8 +373,7 @@
       "truthOverlap": 5.57,
       "hypOverlap": 5.36,
       "overlapTP": 5.31,
-      "seconds": 0.231,
-      "enrolment": "accepted"
+      "seconds": 0.187
     },
     {
       "speaker": "1221",
@@ -411,7 +383,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -424,8 +396,7 @@
       "truthOverlap": 5.57,
       "hypOverlap": 4.78,
       "overlapTP": 4.7,
-      "seconds": 0.249,
-      "enrolment": "accepted"
+      "seconds": 0.221
     },
     {
       "speaker": "1221",
@@ -435,20 +406,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.036,
       "der25": 0.0162,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.296,
-      "enrolment": "accepted"
+      "seconds": 0.231
     },
     {
       "speaker": "1221",
@@ -458,21 +427,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0394,
       "der25": 0.0162,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.276,
-      "enrolment": "accepted"
+      "seconds": 0.255
     },
     {
       "speaker": "1320",
@@ -482,7 +449,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.103,
@@ -490,8 +457,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.27,
-      "enrolment": "accepted"
+      "seconds": 0.254
     },
     {
       "speaker": "1320",
@@ -501,20 +467,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0547,
       "der25": 0.0322,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.346,
-      "enrolment": "accepted"
+      "seconds": 0.255
     },
     {
       "speaker": "1320",
@@ -524,20 +488,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1532,
       "der25": 0.0395,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.312,
-      "enrolment": "accepted"
+      "seconds": 0.179
     },
     {
       "speaker": "1320",
@@ -547,7 +509,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -559,8 +521,7 @@
       "truthOverlap": 3.33,
       "hypOverlap": 3.79,
       "overlapTP": 3.33,
-      "seconds": 0.226,
-      "enrolment": "accepted"
+      "seconds": 0.206
     },
     {
       "speaker": "1320",
@@ -570,7 +531,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -583,8 +544,7 @@
       "truthOverlap": 6.75,
       "hypOverlap": 1.16,
       "overlapTP": 1.16,
-      "seconds": 0.27,
-      "enrolment": "accepted"
+      "seconds": 0.25
     },
     {
       "speaker": "1320",
@@ -594,7 +554,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4471,
@@ -602,8 +562,7 @@
       "truthOverlap": 6.75,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.271,
-      "enrolment": "accepted"
+      "seconds": 0.275
     },
     {
       "speaker": "1320",
@@ -613,21 +572,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0793,
       "der25": 0.0473,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.286,
-      "enrolment": "accepted"
+      "seconds": 0.258
     },
     {
       "speaker": "1320",
@@ -637,21 +593,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0827,
       "der25": 0.0473,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.307,
-      "enrolment": "accepted"
+      "seconds": 0.251
     },
     {
       "speaker": "1995",
@@ -661,7 +614,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0479,
@@ -669,8 +622,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.256,
-      "enrolment": "accepted"
+      "seconds": 0.228
     },
     {
       "speaker": "1995",
@@ -680,20 +632,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0715,
       "der25": 0.0218,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.352,
-      "enrolment": "accepted"
+      "seconds": 0.252
     },
     {
       "speaker": "1995",
@@ -703,20 +653,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0444,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.249,
-      "enrolment": "accepted"
+      "seconds": 0.18
     },
     {
       "speaker": "1995",
@@ -726,7 +674,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -738,8 +686,7 @@
       "truthOverlap": 3.49,
       "hypOverlap": 3.56,
       "overlapTP": 3.49,
-      "seconds": 0.291,
-      "enrolment": "accepted"
+      "seconds": 0.22
     },
     {
       "speaker": "1995",
@@ -749,7 +696,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -762,8 +709,7 @@
       "truthOverlap": 6.05,
       "hypOverlap": 6.7,
       "overlapTP": 6.0,
-      "seconds": 0.254,
-      "enrolment": "accepted"
+      "seconds": 0.195
     },
     {
       "speaker": "1995",
@@ -773,7 +719,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.3876,
@@ -781,8 +727,7 @@
       "truthOverlap": 6.05,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.378,
-      "enrolment": "accepted"
+      "seconds": 0.23
     },
     {
       "speaker": "1995",
@@ -792,20 +737,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0742,
       "der25": 0.0106,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.412,
-      "enrolment": "accepted"
+      "seconds": 0.233
     },
     {
       "speaker": "1995",
@@ -815,21 +758,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0969,
       "der25": 0.0164,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.362,
-      "enrolment": "accepted"
+      "seconds": 0.251
     },
     {
       "speaker": "2300",
@@ -839,7 +780,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0787,
@@ -847,8 +788,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.378,
-      "enrolment": "accepted"
+      "seconds": 0.301
     },
     {
       "speaker": "2300",
@@ -858,7 +798,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4431,
@@ -866,8 +806,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.286,
-      "enrolment": "accepted"
+      "seconds": 0.233
     },
     {
       "speaker": "2300",
@@ -877,7 +816,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.3711,
@@ -885,8 +824,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.215,
-      "enrolment": "accepted"
+      "seconds": 0.215
     },
     {
       "speaker": "2300",
@@ -896,8 +834,8 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "MULTIPLE_SPEAKERS_DETECTED",
@@ -908,8 +846,7 @@
       "truthOverlap": 2.66,
       "hypOverlap": 2.09,
       "overlapTP": 1.97,
-      "seconds": 0.316,
-      "enrolment": "accepted"
+      "seconds": 0.248
     },
     {
       "speaker": "2300",
@@ -919,7 +856,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -932,8 +869,7 @@
       "truthOverlap": 4.32,
       "hypOverlap": 3.63,
       "overlapTP": 2.92,
-      "seconds": 0.282,
-      "enrolment": "accepted"
+      "seconds": 0.209
     },
     {
       "speaker": "2300",
@@ -943,7 +879,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4472,
@@ -951,8 +887,7 @@
       "truthOverlap": 4.32,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.305,
-      "enrolment": "accepted"
+      "seconds": 0.278
     },
     {
       "speaker": "2300",
@@ -962,21 +897,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1029,
       "der25": 0.0586,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.392,
-      "enrolment": "accepted"
+      "seconds": 0.252
     },
     {
       "speaker": "2300",
@@ -986,21 +919,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.125,
       "der25": 0.0805,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.312,
-      "enrolment": "accepted"
+      "seconds": 0.235
     },
     {
       "speaker": "260",
@@ -1010,7 +940,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0498,
@@ -1018,8 +948,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.323,
-      "enrolment": "accepted"
+      "seconds": 0.215
     },
     {
       "speaker": "260",
@@ -1029,20 +958,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0872,
       "der25": 0.0488,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.314,
-      "enrolment": "accepted"
+      "seconds": 0.235
     },
     {
       "speaker": "260",
@@ -1052,20 +979,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.2988,
       "der25": 0.2395,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.219,
-      "enrolment": "accepted"
+      "seconds": 0.182
     },
     {
       "speaker": "260",
@@ -1075,7 +1000,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1087,8 +1012,7 @@
       "truthOverlap": 2.09,
       "hypOverlap": 3.36,
       "overlapTP": 1.92,
-      "seconds": 0.267,
-      "enrolment": "accepted"
+      "seconds": 0.227
     },
     {
       "speaker": "260",
@@ -1098,7 +1022,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1111,8 +1035,7 @@
       "truthOverlap": 5.01,
       "hypOverlap": 3.34,
       "overlapTP": 2.33,
-      "seconds": 0.251,
-      "enrolment": "accepted"
+      "seconds": 0.202
     },
     {
       "speaker": "260",
@@ -1122,7 +1045,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4469,
@@ -1130,8 +1053,7 @@
       "truthOverlap": 5.01,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.283,
-      "enrolment": "accepted"
+      "seconds": 0.239
     },
     {
       "speaker": "260",
@@ -1141,21 +1063,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0805,
       "der25": 0.0444,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.29,
-      "enrolment": "accepted"
+      "seconds": 0.234
     },
     {
       "speaker": "260",
@@ -1165,21 +1085,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0818,
       "der25": 0.0444,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.31,
-      "enrolment": "accepted"
+      "seconds": 0.217
     },
     {
       "speaker": "2961",
@@ -1189,7 +1107,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0333,
@@ -1197,8 +1115,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.269,
-      "enrolment": "accepted"
+      "seconds": 0.231
     },
     {
       "speaker": "2961",
@@ -1208,20 +1125,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0636,
       "der25": 0.0057,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.312,
-      "enrolment": "accepted"
+      "seconds": 0.256
     },
     {
       "speaker": "2961",
@@ -1231,20 +1146,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0268,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.329,
-      "enrolment": "accepted"
+      "seconds": 0.185
     },
     {
       "speaker": "2961",
@@ -1254,7 +1167,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1266,8 +1179,7 @@
       "truthOverlap": 3.08,
       "hypOverlap": 2.53,
       "overlapTP": 2.53,
-      "seconds": 0.282,
-      "enrolment": "accepted"
+      "seconds": 0.208
     },
     {
       "speaker": "2961",
@@ -1277,7 +1189,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1289,8 +1201,7 @@
       "truthOverlap": 5.09,
       "hypOverlap": 4.29,
       "overlapTP": 4.18,
-      "seconds": 0.244,
-      "enrolment": "accepted"
+      "seconds": 0.228
     },
     {
       "speaker": "2961",
@@ -1300,7 +1211,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1313,8 +1224,7 @@
       "truthOverlap": 5.09,
       "hypOverlap": 1.85,
       "overlapTP": 1.8,
-      "seconds": 0.261,
-      "enrolment": "accepted"
+      "seconds": 0.235
     },
     {
       "speaker": "2961",
@@ -1324,20 +1234,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0473,
       "der25": 0.01,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.315,
-      "enrolment": "accepted"
+      "seconds": 0.275
     },
     {
       "speaker": "2961",
@@ -1347,21 +1255,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1102,
       "der25": 0.0629,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.342,
-      "enrolment": "accepted"
+      "seconds": 0.228
     },
     {
       "speaker": "3575",
@@ -1371,7 +1277,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0537,
@@ -1379,8 +1285,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.326,
-      "enrolment": "accepted"
+      "seconds": 0.238
     },
     {
       "speaker": "3575",
@@ -1390,20 +1295,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0211,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.302,
-      "enrolment": "accepted"
+      "seconds": 0.248
     },
     {
       "speaker": "3575",
@@ -1413,20 +1316,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0426,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.264,
-      "enrolment": "accepted"
+      "seconds": 0.19
     },
     {
       "speaker": "3575",
@@ -1436,7 +1337,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1448,8 +1349,7 @@
       "truthOverlap": 3.59,
       "hypOverlap": 3.7,
       "overlapTP": 3.59,
-      "seconds": 0.313,
-      "enrolment": "accepted"
+      "seconds": 0.196
     },
     {
       "speaker": "3575",
@@ -1459,7 +1359,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1471,8 +1371,7 @@
       "truthOverlap": 5.39,
       "hypOverlap": 4.43,
       "overlapTP": 4.02,
-      "seconds": 0.324,
-      "enrolment": "accepted"
+      "seconds": 0.211
     },
     {
       "speaker": "3575",
@@ -1482,7 +1381,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4212,
@@ -1490,8 +1389,7 @@
       "truthOverlap": 5.39,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.338,
-      "enrolment": "accepted"
+      "seconds": 0.256
     },
     {
       "speaker": "3575",
@@ -1501,21 +1399,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0913,
       "der25": 0.0463,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.349,
-      "enrolment": "accepted"
+      "seconds": 0.219
     },
     {
       "speaker": "3575",
@@ -1525,21 +1420,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1033,
       "der25": 0.0597,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.334,
-      "enrolment": "accepted"
+      "seconds": 0.23
     },
     {
       "speaker": "4077",
@@ -1549,7 +1441,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0815,
@@ -1557,8 +1449,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.263,
-      "enrolment": "accepted"
+      "seconds": 0.231
     },
     {
       "speaker": "4077",
@@ -1568,20 +1459,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.043,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.298,
-      "enrolment": "accepted"
+      "seconds": 0.225
     },
     {
       "speaker": "4077",
@@ -1591,7 +1480,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1602,8 +1491,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.272,
-      "enrolment": "accepted"
+      "seconds": 0.187
     },
     {
       "speaker": "4077",
@@ -1613,7 +1501,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1626,8 +1514,7 @@
       "truthOverlap": 2.64,
       "hypOverlap": 3.22,
       "overlapTP": 2.56,
-      "seconds": 0.26,
-      "enrolment": "accepted"
+      "seconds": 0.212
     },
     {
       "speaker": "4077",
@@ -1637,7 +1524,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1649,8 +1536,7 @@
       "truthOverlap": 5.19,
       "hypOverlap": 3.99,
       "overlapTP": 3.83,
-      "seconds": 0.28,
-      "enrolment": "accepted"
+      "seconds": 0.215
     },
     {
       "speaker": "4077",
@@ -1660,7 +1546,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4585,
@@ -1668,8 +1554,7 @@
       "truthOverlap": 5.19,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.337,
-      "enrolment": "accepted"
+      "seconds": 0.251
     },
     {
       "speaker": "4077",
@@ -1679,20 +1564,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.117,
       "der25": 0.0515,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.293,
-      "enrolment": "accepted"
+      "seconds": 0.254
     },
     {
       "speaker": "4077",
@@ -1702,21 +1585,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1094,
       "der25": 0.0515,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.293,
-      "enrolment": "accepted"
+      "seconds": 0.241
     },
     {
       "speaker": "4507",
@@ -1726,7 +1607,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.1563,
@@ -1734,8 +1615,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.354,
-      "enrolment": "accepted"
+      "seconds": 0.259
     },
     {
       "speaker": "4507",
@@ -1745,20 +1625,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1633,
       "der25": 0.0584,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.342,
-      "enrolment": "accepted"
+      "seconds": 0.233
     },
     {
       "speaker": "4507",
@@ -1768,7 +1646,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4175,
@@ -1776,8 +1654,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.279,
-      "enrolment": "accepted"
+      "seconds": 0.177
     },
     {
       "speaker": "4507",
@@ -1787,7 +1664,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1800,8 +1677,7 @@
       "truthOverlap": 1.56,
       "hypOverlap": 1.96,
       "overlapTP": 1.02,
-      "seconds": 0.345,
-      "enrolment": "accepted"
+      "seconds": 0.261
     },
     {
       "speaker": "4507",
@@ -1811,7 +1687,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1823,8 +1699,7 @@
       "truthOverlap": 5.21,
       "hypOverlap": 6.17,
       "overlapTP": 5.1,
-      "seconds": 0.248,
-      "enrolment": "accepted"
+      "seconds": 0.226
     },
     {
       "speaker": "4507",
@@ -1834,7 +1709,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5399,
@@ -1842,8 +1717,7 @@
       "truthOverlap": 5.21,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.302,
-      "enrolment": "accepted"
+      "seconds": 0.307
     },
     {
       "speaker": "4507",
@@ -1853,20 +1727,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0895,
       "der25": 0.0511,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.345,
-      "enrolment": "accepted"
+      "seconds": 0.33
     },
     {
       "speaker": "4507",
@@ -1876,21 +1748,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0919,
       "der25": 0.0511,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.34,
-      "enrolment": "accepted"
+      "seconds": 0.232
     },
     {
       "speaker": "4992",
@@ -1900,7 +1769,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.109,
@@ -1908,8 +1777,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.306,
-      "enrolment": "accepted"
+      "seconds": 0.264
     },
     {
       "speaker": "4992",
@@ -1919,20 +1787,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0092,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.324,
-      "enrolment": "accepted"
+      "seconds": 0.242
     },
     {
       "speaker": "4992",
@@ -1942,18 +1808,15 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
-      "review": [
-        "NON_CANDIDATE_VOICE"
-      ],
+      "review": [],
       "der0": 0.3985,
       "der25": 0.2627,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.267,
-      "enrolment": "accepted"
+      "seconds": 0.182
     },
     {
       "speaker": "4992",
@@ -1963,7 +1826,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1975,8 +1838,7 @@
       "truthOverlap": 3.08,
       "hypOverlap": 2.91,
       "overlapTP": 2.35,
-      "seconds": 0.304,
-      "enrolment": "accepted"
+      "seconds": 0.211
     },
     {
       "speaker": "4992",
@@ -1986,7 +1848,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -1998,8 +1860,7 @@
       "truthOverlap": 6.2,
       "hypOverlap": 3.19,
       "overlapTP": 2.77,
-      "seconds": 0.274,
-      "enrolment": "accepted"
+      "seconds": 0.191
     },
     {
       "speaker": "4992",
@@ -2009,7 +1870,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4782,
@@ -2017,8 +1878,7 @@
       "truthOverlap": 6.2,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.332,
-      "enrolment": "accepted"
+      "seconds": 0.231
     },
     {
       "speaker": "4992",
@@ -2028,20 +1888,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0642,
       "der25": 0.0194,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.348,
-      "enrolment": "accepted"
+      "seconds": 0.263
     },
     {
       "speaker": "4992",
@@ -2051,21 +1909,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.056,
       "der25": 0.0136,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.338,
-      "enrolment": "accepted"
+      "seconds": 0.223
     },
     {
       "speaker": "5142",
@@ -2075,7 +1930,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0132,
@@ -2083,8 +1938,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.364,
-      "enrolment": "accepted"
+      "seconds": 0.314
     },
     {
       "speaker": "5142",
@@ -2094,7 +1948,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5966,
@@ -2102,8 +1956,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.364,
-      "enrolment": "accepted"
+      "seconds": 0.246
     },
     {
       "speaker": "5142",
@@ -2113,7 +1966,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4718,
@@ -2121,8 +1974,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.274,
-      "enrolment": "accepted"
+      "seconds": 0.172
     },
     {
       "speaker": "5142",
@@ -2132,8 +1984,8 @@
       "diarizedSpeakers": 3,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN",
         "S3": "UNCERTAIN"
       },
       "review": [
@@ -2145,8 +1997,7 @@
       "truthOverlap": 3.12,
       "hypOverlap": 3.15,
       "overlapTP": 2.88,
-      "seconds": 0.332,
-      "enrolment": "accepted"
+      "seconds": 0.24
     },
     {
       "speaker": "5142",
@@ -2156,7 +2007,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [],
@@ -2165,8 +2016,7 @@
       "truthOverlap": 5.82,
       "hypOverlap": 0.72,
       "overlapTP": 0.72,
-      "seconds": 0.346,
-      "enrolment": "accepted"
+      "seconds": 0.245
     },
     {
       "speaker": "5142",
@@ -2176,7 +2026,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4055,
@@ -2184,8 +2034,7 @@
       "truthOverlap": 5.82,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.362,
-      "enrolment": "accepted"
+      "seconds": 0.271
     },
     {
       "speaker": "5142",
@@ -2195,20 +2044,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0187,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.287,
-      "enrolment": "accepted"
+      "seconds": 0.308
     },
     {
       "speaker": "5142",
@@ -2218,21 +2065,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0884,
       "der25": 0.0616,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.338,
-      "enrolment": "accepted"
+      "seconds": 0.423
     },
     {
       "speaker": "5683",
@@ -2242,8 +2086,8 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5047,
@@ -2251,8 +2095,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.335,
-      "enrolment": "accepted"
+      "seconds": 0.357
     },
     {
       "speaker": "5683",
@@ -2262,20 +2105,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0813,
       "der25": 0.0474,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.311,
-      "enrolment": "accepted"
+      "seconds": 0.348
     },
     {
       "speaker": "5683",
@@ -2285,20 +2126,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.3617,
       "der25": 0.3255,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.252,
-      "enrolment": "accepted"
+      "seconds": 0.378
     },
     {
       "speaker": "5683",
@@ -2308,7 +2147,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2321,8 +2160,7 @@
       "truthOverlap": 3.02,
       "hypOverlap": 3.12,
       "overlapTP": 2.68,
-      "seconds": 0.25,
-      "enrolment": "accepted"
+      "seconds": 0.462
     },
     {
       "speaker": "5683",
@@ -2332,7 +2170,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2344,8 +2182,7 @@
       "truthOverlap": 5.04,
       "hypOverlap": 4.23,
       "overlapTP": 3.94,
-      "seconds": 0.231,
-      "enrolment": "accepted"
+      "seconds": 0.506
     },
     {
       "speaker": "5683",
@@ -2355,7 +2192,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4176,
@@ -2363,8 +2200,7 @@
       "truthOverlap": 5.04,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.275,
-      "enrolment": "accepted"
+      "seconds": 0.368
     },
     {
       "speaker": "5683",
@@ -2374,7 +2210,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.607,
@@ -2382,8 +2218,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.288,
-      "enrolment": "accepted"
+      "seconds": 0.391
     },
     {
       "speaker": "5683",
@@ -2393,21 +2228,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1512,
       "der25": 0.0866,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.315,
-      "enrolment": "accepted"
+      "seconds": 0.327
     },
     {
       "speaker": "672",
@@ -2417,7 +2250,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.3241,
@@ -2425,8 +2258,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.315,
-      "enrolment": "accepted"
+      "seconds": 0.34
     },
     {
       "speaker": "672",
@@ -2436,20 +2268,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0413,
       "der25": 0.0133,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.346,
-      "enrolment": "accepted"
+      "seconds": 0.323
     },
     {
       "speaker": "672",
@@ -2460,18 +2290,15 @@
       "distinctVoices": null,
       "roles": {
         "S1": "UNCERTAIN",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S2": "UNCERTAIN"
       },
-      "review": [
-        "NON_CANDIDATE_VOICE"
-      ],
+      "review": [],
       "der0": 0.0797,
       "der25": 0.0247,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.215,
-      "enrolment": "accepted"
+      "seconds": 0.225
     },
     {
       "speaker": "672",
@@ -2481,7 +2308,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2493,8 +2320,7 @@
       "truthOverlap": 3.81,
       "hypOverlap": 3.17,
       "overlapTP": 3.0,
-      "seconds": 0.267,
-      "enrolment": "accepted"
+      "seconds": 0.343
     },
     {
       "speaker": "672",
@@ -2504,7 +2330,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4972,
@@ -2512,8 +2338,7 @@
       "truthOverlap": 5.57,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.31,
-      "enrolment": "accepted"
+      "seconds": 0.436
     },
     {
       "speaker": "672",
@@ -2523,7 +2348,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4996,
@@ -2531,8 +2356,7 @@
       "truthOverlap": 5.57,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.289,
-      "enrolment": "accepted"
+      "seconds": 0.422
     },
     {
       "speaker": "672",
@@ -2542,21 +2366,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1358,
       "der25": 0.1137,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.29,
-      "enrolment": "accepted"
+      "seconds": 0.383
     },
     {
       "speaker": "672",
@@ -2566,21 +2387,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0731,
       "der25": 0.0471,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.281,
-      "enrolment": "accepted"
+      "seconds": 0.487
     },
     {
       "speaker": "6930",
@@ -2590,7 +2408,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.1566,
@@ -2598,8 +2416,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.302,
-      "enrolment": "accepted"
+      "seconds": 0.469
     },
     {
       "speaker": "6930",
@@ -2609,20 +2426,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0198,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.294,
-      "enrolment": "accepted"
+      "seconds": 0.31
     },
     {
       "speaker": "6930",
@@ -2632,7 +2447,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2643,8 +2458,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.211,
-      "enrolment": "accepted"
+      "seconds": 0.341
     },
     {
       "speaker": "6930",
@@ -2654,7 +2468,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2666,8 +2480,7 @@
       "truthOverlap": 3.59,
       "hypOverlap": 3.57,
       "overlapTP": 3.52,
-      "seconds": 0.242,
-      "enrolment": "accepted"
+      "seconds": 0.276
     },
     {
       "speaker": "6930",
@@ -2677,7 +2490,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2689,8 +2502,7 @@
       "truthOverlap": 3.72,
       "hypOverlap": 2.62,
       "overlapTP": 2.6,
-      "seconds": 0.264,
-      "enrolment": "accepted"
+      "seconds": 0.379
     },
     {
       "speaker": "6930",
@@ -2700,7 +2512,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2713,8 +2525,7 @@
       "truthOverlap": 3.72,
       "hypOverlap": 1.91,
       "overlapTP": 1.85,
-      "seconds": 0.295,
-      "enrolment": "accepted"
+      "seconds": 0.501
     },
     {
       "speaker": "6930",
@@ -2724,7 +2535,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.6107,
@@ -2732,8 +2543,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.344,
-      "enrolment": "accepted"
+      "seconds": 0.428
     },
     {
       "speaker": "6930",
@@ -2743,7 +2553,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2755,8 +2565,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.323,
-      "enrolment": "accepted"
+      "seconds": 0.437
     },
     {
       "speaker": "7127",
@@ -2766,7 +2575,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0074,
@@ -2774,8 +2583,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.291,
-      "enrolment": "accepted"
+      "seconds": 0.427
     },
     {
       "speaker": "7127",
@@ -2785,20 +2593,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.2927,
       "der25": 0.2039,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.301,
-      "enrolment": "accepted"
+      "seconds": 0.449
     },
     {
       "speaker": "7127",
@@ -2808,20 +2614,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.034,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.234,
-      "enrolment": "accepted"
+      "seconds": 0.309
     },
     {
       "speaker": "7127",
@@ -2831,7 +2635,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2843,8 +2647,7 @@
       "truthOverlap": 2.84,
       "hypOverlap": 4.23,
       "overlapTP": 2.84,
-      "seconds": 0.223,
-      "enrolment": "accepted"
+      "seconds": 0.389
     },
     {
       "speaker": "7127",
@@ -2854,7 +2657,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2866,8 +2669,7 @@
       "truthOverlap": 4.57,
       "hypOverlap": 4.11,
       "overlapTP": 3.58,
-      "seconds": 0.243,
-      "enrolment": "accepted"
+      "seconds": 0.366
     },
     {
       "speaker": "7127",
@@ -2877,7 +2679,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -2889,8 +2691,7 @@
       "truthOverlap": 4.57,
       "hypOverlap": 1.16,
       "overlapTP": 1.08,
-      "seconds": 0.307,
-      "enrolment": "accepted"
+      "seconds": 0.393
     },
     {
       "speaker": "7127",
@@ -2900,7 +2701,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5258,
@@ -2908,8 +2709,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.265,
-      "enrolment": "accepted"
+      "seconds": 0.393
     },
     {
       "speaker": "7127",
@@ -2919,21 +2719,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0522,
       "der25": 0.0056,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.278,
-      "enrolment": "accepted"
+      "seconds": 0.406
     },
     {
       "speaker": "7729",
@@ -2943,7 +2740,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0707,
@@ -2951,8 +2748,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.28,
-      "enrolment": "accepted"
+      "seconds": 0.415
     },
     {
       "speaker": "7729",
@@ -2962,20 +2758,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0126,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.282,
-      "enrolment": "accepted"
+      "seconds": 0.37
     },
     {
       "speaker": "7729",
@@ -2985,7 +2779,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.6595,
@@ -2993,8 +2787,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.245,
-      "enrolment": "accepted"
+      "seconds": 0.315
     },
     {
       "speaker": "7729",
@@ -3004,7 +2797,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3016,8 +2809,7 @@
       "truthOverlap": 2.98,
       "hypOverlap": 2.58,
       "overlapTP": 2.46,
-      "seconds": 0.31,
-      "enrolment": "accepted"
+      "seconds": 0.419
     },
     {
       "speaker": "7729",
@@ -3027,7 +2819,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3040,8 +2832,7 @@
       "truthOverlap": 5.49,
       "hypOverlap": 6.14,
       "overlapTP": 4.96,
-      "seconds": 0.212,
-      "enrolment": "accepted"
+      "seconds": 0.343
     },
     {
       "speaker": "7729",
@@ -3051,7 +2842,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4442,
@@ -3059,8 +2850,7 @@
       "truthOverlap": 5.49,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.297,
-      "enrolment": "accepted"
+      "seconds": 0.388
     },
     {
       "speaker": "7729",
@@ -3070,21 +2860,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0316,
       "der25": 0.0043,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.273,
-      "enrolment": "accepted"
+      "seconds": 0.424
     },
     {
       "speaker": "7729",
@@ -3094,21 +2881,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0316,
       "der25": 0.0043,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.295,
-      "enrolment": "accepted"
+      "seconds": 0.38
     },
     {
       "speaker": "8230",
@@ -3118,7 +2902,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0953,
@@ -3126,8 +2910,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.327,
-      "enrolment": "accepted"
+      "seconds": 0.437
     },
     {
       "speaker": "8230",
@@ -3137,20 +2920,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0289,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.319,
-      "enrolment": "accepted"
+      "seconds": 0.523
     },
     {
       "speaker": "8230",
@@ -3160,20 +2941,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0566,
       "der25": 0.0,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.229,
-      "enrolment": "accepted"
+      "seconds": 0.31
     },
     {
       "speaker": "8230",
@@ -3183,7 +2962,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3195,8 +2974,7 @@
       "truthOverlap": 3.71,
       "hypOverlap": 3.85,
       "overlapTP": 3.71,
-      "seconds": 0.244,
-      "enrolment": "accepted"
+      "seconds": 0.328
     },
     {
       "speaker": "8230",
@@ -3206,7 +2984,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4328,
@@ -3214,8 +2992,7 @@
       "truthOverlap": 5.25,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.326,
-      "enrolment": "accepted"
+      "seconds": 0.373
     },
     {
       "speaker": "8230",
@@ -3225,7 +3002,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4328,
@@ -3233,8 +3010,7 @@
       "truthOverlap": 5.25,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.275,
-      "enrolment": "accepted"
+      "seconds": 0.369
     },
     {
       "speaker": "8230",
@@ -3244,21 +3020,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1536,
       "der25": 0.1285,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.331,
-      "enrolment": "accepted"
+      "seconds": 0.422
     },
     {
       "speaker": "8230",
@@ -3268,7 +3042,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.5577,
@@ -3276,8 +3050,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.288,
-      "enrolment": "accepted"
+      "seconds": 0.238
     },
     {
       "speaker": "8463",
@@ -3287,7 +3060,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.0201,
@@ -3295,8 +3068,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.289,
-      "enrolment": "accepted"
+      "seconds": 0.269
     },
     {
       "speaker": "8463",
@@ -3306,20 +3078,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.1249,
       "der25": 0.07,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.313,
-      "enrolment": "accepted"
+      "seconds": 0.297
     },
     {
       "speaker": "8463",
@@ -3329,20 +3099,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.154,
       "der25": 0.0568,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.279,
-      "enrolment": "accepted"
+      "seconds": 0.277
     },
     {
       "speaker": "8463",
@@ -3352,7 +3120,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3364,8 +3132,7 @@
       "truthOverlap": 3.75,
       "hypOverlap": 3.82,
       "overlapTP": 3.75,
-      "seconds": 0.276,
-      "enrolment": "accepted"
+      "seconds": 0.346
     },
     {
       "speaker": "8463",
@@ -3375,7 +3142,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3387,8 +3154,7 @@
       "truthOverlap": 5.76,
       "hypOverlap": 4.96,
       "overlapTP": 4.54,
-      "seconds": 0.256,
-      "enrolment": "accepted"
+      "seconds": 0.211
     },
     {
       "speaker": "8463",
@@ -3398,7 +3164,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4399,
@@ -3406,8 +3172,7 @@
       "truthOverlap": 5.76,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.309,
-      "enrolment": "accepted"
+      "seconds": 0.296
     },
     {
       "speaker": "8463",
@@ -3417,20 +3182,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0888,
       "der25": 0.039,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.301,
-      "enrolment": "accepted"
+      "seconds": 0.288
     },
     {
       "speaker": "8463",
@@ -3440,21 +3203,18 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
-        "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.0905,
       "der25": 0.0417,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.289,
-      "enrolment": "accepted"
+      "seconds": 0.281
     },
     {
       "speaker": "908",
@@ -3464,7 +3224,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.1112,
@@ -3472,8 +3232,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.328,
-      "enrolment": "accepted"
+      "seconds": 0.344
     },
     {
       "speaker": "908",
@@ -3483,7 +3242,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.9658,
@@ -3491,8 +3250,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.275,
-      "enrolment": "accepted"
+      "seconds": 0.365
     },
     {
       "speaker": "908",
@@ -3510,8 +3268,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.223,
-      "enrolment": "accepted"
+      "seconds": 0.277
     },
     {
       "speaker": "908",
@@ -3521,7 +3278,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3534,8 +3291,7 @@
       "truthOverlap": 1.73,
       "hypOverlap": 1.32,
       "overlapTP": 1.32,
-      "seconds": 0.289,
-      "enrolment": "accepted"
+      "seconds": 0.384
     },
     {
       "speaker": "908",
@@ -3545,7 +3301,7 @@
       "diarizedSpeakers": 2,
       "distinctVoices": null,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
+        "S1": "UNCERTAIN",
         "S2": "UNCERTAIN"
       },
       "review": [
@@ -3556,8 +3312,7 @@
       "truthOverlap": 4.92,
       "hypOverlap": 0.59,
       "overlapTP": 0.57,
-      "seconds": 0.276,
-      "enrolment": "accepted"
+      "seconds": 0.294
     },
     {
       "speaker": "908",
@@ -3567,7 +3322,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.4558,
@@ -3575,8 +3330,7 @@
       "truthOverlap": 4.92,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.289,
-      "enrolment": "accepted"
+      "seconds": 1.251
     },
     {
       "speaker": "908",
@@ -3586,7 +3340,7 @@
       "diarizedSpeakers": 1,
       "distinctVoices": 1,
       "roles": {
-        "S1": "LIKELY_CANDIDATE"
+        "S1": "UNCERTAIN"
       },
       "review": [],
       "der0": 0.7946,
@@ -3594,8 +3348,7 @@
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.314,
-      "enrolment": "accepted"
+      "seconds": 1.427
     },
     {
       "speaker": "908",
@@ -3605,21 +3358,19 @@
       "diarizedSpeakers": 2,
       "distinctVoices": 2,
       "roles": {
-        "S1": "LIKELY_CANDIDATE",
-        "S2": "LIKELY_NON_CANDIDATE"
+        "S1": "UNCERTAIN",
+        "S2": "UNCERTAIN"
       },
       "review": [
         "BACKGROUND_CONVERSATION_DETECTED",
-        "MULTIPLE_SPEAKERS_DETECTED",
-        "NON_CANDIDATE_VOICE"
+        "MULTIPLE_SPEAKERS_DETECTED"
       ],
       "der0": 0.2832,
       "der25": 0.1835,
       "truthOverlap": 0.0,
       "hypOverlap": 0.0,
       "overlapTP": 0.0,
-      "seconds": 0.3,
-      "enrolment": "accepted"
+      "seconds": 1.416
     }
   ]
 }

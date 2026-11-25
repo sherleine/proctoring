@@ -10,7 +10,7 @@ real exam rooms. Per speaker A (paired with the next evaluation speaker B), 10 s
   pausesplit  A 1.4 s | 0.8 s | A 1.2 s | 1.0 s | B 3.6 s      truth: 2 (A's speech cut by pauses)
   overlap     A 10 s + B at 3-7 s (gain 0.9)                   truth: 2, 4 s overlap
   background  A 10 s + B at 2-9 s, 20 dB quieter               truth: 2 (quiet background voice)
-The candidate is A, enrolled from 15 s of A's FIRST chapter (clips use other chapters).
+No voice sample is used: speakers are anonymous (the current configuration).
 Ground-truth speech of each source piece = Silero VAD on that piece alone.
 Metrics: speaker count (diarization) and distinct voices (with CAM++), DER (pyannote.metrics, collar 0 and 0.25 s,
 overlap scored), overlap precision/recall on a 10 ms grid, voice roles, review observations, processing time.
@@ -34,7 +34,7 @@ import soundfile as sf  # noqa: E402
 from app.core.config import Settings  # noqa: E402
 from app.main import Runtime  # noqa: E402  (same construction as the service)
 from app.schemas.audio_event import parse_event_entry  # noqa: E402
-from tests.helpers import event_entry, put_audio, wav_bytes  # noqa: E402
+from tests.helpers import event_entry, new_session_id, put_audio, wav_bytes  # noqa: E402
 
 SR = 16_000
 GRID = 0.01
@@ -88,7 +88,7 @@ def main() -> None:
             x = pa.copy()
             x[3 * SR:7 * SR] += 0.9 * pb
             return np.clip(x, -1, 1), {"A": speech_spans(pa, 0), "B": speech_spans(pb, 3.0)}
-        if kind in ("bgalone10", "bgalone20"):  # quiet voice while the candidate is silent (e.g. reading)
+        if kind in ("bgalone10", "bgalone20"):  # quiet voice while the main speaker is silent (e.g. reading)
             pa, pb = take(a, 1, 10, 4.5), take(b, 1, 6, 5)
             pb = pb * 10 ** ((-10 if kind == "bgalone10" else -20) / 20)
             return np.concatenate([pa, np.zeros(SR // 2, np.float32), pb]), {"A": speech_spans(pa, 0), "B": speech_spans(pb / max(np.abs(pb).max(), 1e-6), 5.0)}
@@ -117,18 +117,12 @@ def main() -> None:
                                       settings.diarization_min_speech_seconds)
         for i, a in enumerate(speakers):
             b = speakers[(i + 1) % len(speakers)]
-            # enrolment of A through the real pipeline (eventType enrolment)
-            enrol = take(a, 0, 0, 15)
-            data = wav_bytes(enrol)
-            sid, key = put_audio(store, data)
-            r = pipeline.process(parse_event_entry(event_entry(sid, key, data, duration=round(len(enrol) / SR, 3), event_type="enrolment")))
-            reference = {"embedding": r.enrolment["embedding"], "model": r.enrolment["embeddingModel"],
-                         "enrolmentEventId": r.eventId} if r.enrolment["status"] == "accepted" else None
+            sid = new_session_id()
             for kind in kinds:
                 clip, truth = build(kind, a, b)
                 data = wav_bytes(clip)
                 _, key = put_audio(store, data, session_id=sid)
-                entry = event_entry(sid, key, data, duration=round(len(clip) / SR, 3), speaker_reference=reference)
+                entry = event_entry(sid, key, data, duration=round(len(clip) / SR, 3))
                 t0 = time.perf_counter()
                 payload = pipeline.process(parse_event_entry(entry)).to_payload()
                 elapsed = time.perf_counter() - t0
@@ -151,8 +145,7 @@ def main() -> None:
                              "diarizedSpeakers": d.get("speakerCount"), "distinctVoices": d.get("distinctVoices"),
                              "roles": roles, "review": review, "der0": round(der_0, 4), "der25": round(der_25, 4),
                              "truthOverlap": round(truth_ov.sum() * GRID, 2), "hypOverlap": round(hyp_ov.sum() * GRID, 2),
-                             "overlapTP": round((truth_ov & hyp_ov).sum() * GRID, 2), "seconds": round(elapsed, 3),
-                             "enrolment": r.enrolment["status"]})
+                             "overlapTP": round((truth_ov & hyp_ov).sum() * GRID, 2), "seconds": round(elapsed, 3)})
                 print(f"{a:>5}+{b:<5} {kind:10} diar={d.get('speakerCount')} voices={d.get('distinctVoices')} "
                       f"roles={list(roles.values())} review={review} DER={der_0:.3f} ov={rows[-1]['hypOverlap']}/{rows[-1]['truthOverlap']}s "
                       f"{elapsed * 1000:.0f} ms", flush=True)
@@ -169,7 +162,6 @@ def main() -> None:
             "diarizedSpeakersCorrect": round(np.mean([r["diarizedSpeakers"] == expected for r in k]), 3),
             "distinctVoicesCorrect": round(np.mean([r["distinctVoices"] == expected for r in k]), 3),
             "multipleSpeakersObservation": round(np.mean(["MULTIPLE_SPEAKERS_DETECTED" in r["review"] for r in k]), 3),
-            "nonCandidateObservation": round(np.mean(["NON_CANDIDATE_VOICE" in r["review"] for r in k]), 3),
             "overlappingSpeechObservation": round(np.mean(["OVERLAPPING_SPEECH_DETECTED" in r["review"] for r in k]), 3),
             "backgroundObservation": round(np.mean(["BACKGROUND_CONVERSATION_DETECTED" in r["review"] for r in k]), 3),
             "assistanceObservation": round(np.mean(["POSSIBLE_EXTERNAL_ASSISTANCE" in r["review"] for r in k]), 3),

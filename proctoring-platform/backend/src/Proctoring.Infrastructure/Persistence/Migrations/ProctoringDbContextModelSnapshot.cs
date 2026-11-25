@@ -394,58 +394,6 @@ namespace Proctoring.Infrastructure.Persistence.Migrations
                     b.ToTable("sessions", (string)null);
                 });
 
-            modelBuilder.Entity("Proctoring.Domain.Sessions.SessionVoiceprint", b =>
-                {
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(40)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("session_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("EmbeddingJson")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("embedding_json");
-
-                    b.Property<Guid>("EnrolmentEventId")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("enrolment_event_id");
-
-                    b.Property<string>("Model")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("model");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("reason");
-
-                    b.Property<double>("SpeechSeconds")
-                        .HasColumnType("REAL")
-                        .HasColumnName("speech_seconds");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("status");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("SessionId");
-
-                    b.HasIndex("UpdatedAt")
-                        .HasDatabaseName("ix_session_voiceprints_updated");
-
-                    b.ToTable("session_voiceprints", (string)null);
-                });
-
             modelBuilder.Entity("Proctoring.Domain.Events.AudioEvent", b =>
                 {
                     b.HasOne("Proctoring.Domain.Sessions.Session", null)
@@ -460,15 +408,6 @@ namespace Proctoring.Infrastructure.Persistence.Migrations
                     b.HasOne("Proctoring.Domain.Events.AudioEvent", null)
                         .WithMany()
                         .HasForeignKey("SessionId", "EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Proctoring.Domain.Sessions.SessionVoiceprint", b =>
-                {
-                    b.HasOne("Proctoring.Domain.Sessions.Session", null)
-                        .WithOne()
-                        .HasForeignKey("Proctoring.Domain.Sessions.SessionVoiceprint", "SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

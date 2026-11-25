@@ -94,16 +94,6 @@ export class AudioPipeline {
     await Promise.race([done, new Promise((r) => setTimeout(r, timeoutMs))]);
   }
 
-  
-  startEnrolment(maxSeconds: number): void {
-    this.worker?.postMessage({ type: "enrol-start", maxSeconds } satisfies WorkerIn);
-  }
-
-  
-  stopEnrolment(): void {
-    this.worker?.postMessage({ type: "enrol-stop" } satisfies WorkerIn);
-  }
-
   async stop(): Promise<void> {
     this.node?.port.postMessage({ type: "stop" });
     this.source?.disconnect();

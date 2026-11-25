@@ -68,11 +68,6 @@ metadata plus `candidateId`, `examId` and an **audio reference**. Audio bytes ar
 - Verify `sha256` and `sizeBytes` before processing; a mismatch is a permanent failure.
 - The WAV is 16 kHz, mono, 16-bit PCM (validated by the backend on upload).
 
-**Contract 1.1:** for speech events the backend adds the optional `speakerReference`
-(`{ embedding[], model, enrolmentEventId }`) when the session has an **accepted** voice sample. It is never added to
-the voice sample itself or to another session's events. The embedding is biometric data: it exists only in this
-internal message and in `session_voiceprints` (deleted after `VOICEPRINT_RETENTION_HOURS`).
-
 ### `audio.analysis.started` (processing → backend) *(new in Phase 4)*
 `payload` = [analysis-started.v1.json](schemas/analysis-started.v1.json): `schemaVersion`, `sessionId`,
 `eventId`, `startedAt`, `deliveryCount` (from `XPENDING`/`XAUTOCLAIM`), optional `worker`. Sets the event to
@@ -82,10 +77,10 @@ internal message and in `session_voiceprints` (deleted after `VOICEPRINT_RETENTI
 `payload` = [analysis-result.v1.json](schemas/analysis-result.v1.json) with `status: "completed"`. Sets
 `COMPLETED` and stores the result (served by `GET …/events/{id}` and `…/result`).
 
-**Contract 1.1 additions to the result** (all optional, `schemaVersion: "1.1"`): `enrolment` (voice-sample outcome
-incl. the embedding, only for `eventType: enrolment`), `speaker` (per-region comparison with the reference:
-`LIKELY_CANDIDATE` / `LIKELY_NON_CANDIDATE` / `UNCERTAIN`) and `observations[]` (deterministic `observationId`, so a
-redelivery never duplicates rows). The backend stores each observation as a row (`observations` table).
+**Contract 1.1 additions to the result** (all optional, `schemaVersion: "1.1"`): diarization details
+(`diarization.speakers[]` with anonymous labels and roles, `distinctVoices`) and `observations[]` (deterministic
+`observationId`, so a redelivery never duplicates rows; `category` informational or review). The backend stores each
+observation as a row (`observations` table).
 
 ### `audio.analysis.failed` (processing → backend)
 `payload` = analysis-result with `status: "failed"` and `error: { code, message, retryable, deliveryCount }`.

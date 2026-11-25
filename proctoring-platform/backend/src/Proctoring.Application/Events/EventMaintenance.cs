@@ -20,8 +20,7 @@ public sealed class EventMaintenance(
     EventPublisher publisher,
     TimeProvider clock,
     IOptions<AudioEventOptions> options,
-    ILogger<EventMaintenance> logger,
-    IVoiceprintRepository? voiceprints = null)
+    ILogger<EventMaintenance> logger)
 {
     private const int Batch = 100;
     private readonly AudioEventOptions _options = options.Value;
@@ -31,21 +30,11 @@ public sealed class EventMaintenance(
         var (republished, missing) = await RepublishPendingAsync(ct);
         var staging = await store.DeleteStaleStagingAsync(TimeSpan.FromMinutes(_options.StagingMaxAgeMinutes), ct);
         var expired = await ApplyRetentionAsync(ct);
-        await ApplyVoiceprintRetentionAsync(ct);
         var report = new MaintenanceReport(republished, missing, staging, expired);
         if (report != new MaintenanceReport(0, 0, 0, 0))
             logger.LogInformation("Event maintenance: {Republished} re-published, {Missing} marked missing, {Staging} staging files and {Expired} expired audio files deleted",
                 republished, missing, staging, expired);
         return report;
-    }
-
-    /// <summary>Deletes candidate voice references (biometric data) VOICEPRINT_RETENTION_HOURS after their last update.</summary>
-    public async Task<int> ApplyVoiceprintRetentionAsync(CancellationToken ct)
-    {
-        if (voiceprints is null) return 0;
-        var deleted = await voiceprints.DeleteUpdatedBeforeAsync(clock.GetUtcNow().UtcDateTime - _options.VoiceprintRetention, ct);
-        if (deleted > 0) logger.LogInformation("Event maintenance: {Count} expired voice references deleted", deleted);
-        return deleted;
     }
 
     public async Task<(int Republished, int MarkedMissing)> RepublishPendingAsync(CancellationToken ct)

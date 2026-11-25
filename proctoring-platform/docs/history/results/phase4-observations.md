@@ -46,3 +46,24 @@ AI tests 128 passed.
   background - those clips are still reported as overlap + multiple speakers.
 - Assistance needs transcription (off by default) and English phrase patterns; transcripts can be wrong.
 - Synthetic mixtures only; no real room or two-person recordings yet (Phase 7).
+
+## Without a candidate voice sample (current configuration, 25 Nov 2026)
+
+The frontend no longer records a voice sample. Same 20 held-out speakers and clips, `eval_diarization.py --no-enrolment`
+(results: `ai-service/evaluation/results/eval_diarization_no_enrolment.json`):
+
+| Clip | MULTIPLE | OVERLAPPING | BACKGROUND | any review observation |
+|---|---|---|---|---|
+| one speaker | 0 % | 0 % | 0 % | **0 %** |
+| A, pause, B | 85 % | 0 % | 0 % | 85 % |
+| A split by pauses, then B | 65 % | 0 % | 0 % | 65 % |
+| A + B overlapping (equal level) | 100 % | 100 % | 20 % | 100 % |
+| A + B overlapping, B -10 dB | 75 % | 75 % | 30 % | 80 % |
+| A + B overlapping, B -20 dB | 20 % | 20 % | 15 % | 20 % |
+| A, then quiet B (-10 dB) alone | 80 % | 0 % | 15 % | 80 % |
+| A, then quiet B (-20 dB) alone | 95 % | 0 % | **40 %** (95 % with a voice sample) | 95 % |
+
+NON_CANDIDATE_VOICE cannot occur without a voice sample. Multiple-speaker and overlap detection are unchanged.
+Background detection is lower: without a sample the "main" speaker is the one with the most speech, which in these
+clips is sometimes the quieter voice. Choosing the loudest voice as main may help but has to be checked on data
+other than this held-out set.

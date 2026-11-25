@@ -42,7 +42,6 @@ public static class DependencyInjection
         services.AddScoped<IAudioEventRepository, EfAudioEventRepository>();
         services.AddScoped<IEventUpdateRepository, EfEventUpdateRepository>();
         services.AddScoped<IObservationRepository, EfObservationRepository>();
-        services.AddScoped<IVoiceprintRepository, EfVoiceprintRepository>();
         services.AddSingleton<ISessionTokenService, SessionTokenService>();
         services.AddSingleton<ISessionIdGenerator, SessionIdGenerator>();
         services.AddSingleton<IContractValidator>(_ => new JsonSchemaContractValidator(settings.SchemaDirectory));

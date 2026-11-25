@@ -32,8 +32,7 @@ public sealed class EventPublisher(
     IContractValidator contracts,
     TimeProvider clock,
     IOptions<AudioEventOptions> options,
-    ILogger<EventPublisher> logger,
-    IVoiceprintRepository? voiceprints = null)
+    ILogger<EventPublisher> logger)
 {
     public const string MessageSchema = "audio-event-message.v1.json";
     private readonly AudioEventOptions _options = options.Value;
@@ -53,7 +52,7 @@ public sealed class EventPublisher(
                 return PublishOutcome.AudioMissing;
             }
 
-            var message = BuildMessage(audioEvent, now, await SpeakerReferenceAsync(audioEvent, ct));
+            var message = BuildMessage(audioEvent, now);
             await queue.PublishAsync(message, ct); // throws QueueUnavailableException
         }
         catch
@@ -67,31 +66,8 @@ public sealed class EventPublisher(
         return PublishOutcome.Queued;
     }
 
-    /// <summary>
-    /// Contract 1.1: the session's ACCEPTED candidate voice reference, for speech events only (never for the
-    /// enrolment sample itself). Null when the session has none - the AI then does not compare voices.
-    /// </summary>
-    public async Task<JsonObject?> SpeakerReferenceAsync(AudioEvent e, CancellationToken ct)
-    {
-        if (voiceprints is null || IsEnrolment(e)) return null;
-        var voiceprint = await voiceprints.FindAsync(e.SessionId, ct);
-        if (voiceprint is not { IsUsable: true }) return null;
-        return new JsonObject
-        {
-            ["embedding"] = JsonNode.Parse(voiceprint.EmbeddingJson!),
-            ["model"] = voiceprint.Model,
-            ["enrolmentEventId"] = voiceprint.EnrolmentEventId.ToString(),
-        };
-    }
-
-    private static bool IsEnrolment(AudioEvent e)
-    {
-        try { return (string?)JsonNode.Parse(e.MetadataJson)?["eventType"] == "enrolment"; }
-        catch (JsonException) { return false; }
-    }
-
     /// <summary>Builds the stream message and checks it against audio-event-message.v1.json before sending.</summary>
-    public AudioEventSubmittedMessage BuildMessage(AudioEvent e, DateTime nowUtc, JsonObject? speakerReference = null)
+    public AudioEventSubmittedMessage BuildMessage(AudioEvent e, DateTime nowUtc)
     {
         var payload = new JsonObject
         {
@@ -109,7 +85,6 @@ public sealed class EventPublisher(
                 ["key"] = e.StorageKey,
             },
         };
-        if (speakerReference is not null) payload["speakerReference"] = speakerReference;
         var errors = contracts.Validate(MessageSchema, payload);
         if (errors.Count > 0)
             throw new InvalidOperationException("Outgoing message violates " + MessageSchema + ": " +

@@ -4,10 +4,8 @@ A complete, **standalone** audio-proctoring application: React frontend, .NET 9 
 Python AI service, all in this repository and runnable on one machine. It does **not** integrate with or depend on
 any other proctoring system. Service boundaries are the versioned contracts in [contracts/](contracts/).
 
-Sections 1–8 describe what is implemented today (Phases 1–6). The extensions for suspicious-audio detection
-(sound trigger, voice enrolment, sound classification, speaker analysis, rule engine, reviewer interface) are
-designed in [audio-research/integration-design.md](audio-research/integration-design.md) and scheduled in
-[implementation-plan.md](implementation-plan.md) (Phases 7–13).
+The AI pipeline (speech verification, speaker diarization, voice comparison between speakers, observation rules) is
+described in section 6. Earlier plans and dated phase reports are in [history/](history/).
 
 ## 0. Repository layout
 
@@ -330,8 +328,6 @@ model error is retried via the pending list and dead-lettered after `AI_MAX_DELI
 - Delivery is at-least-once; duplicates are handled by idempotent receivers, not prevented.
 - Stream trimming (`REDIS_STREAM_MAXLEN`) can drop entries that are still pending; events already `QUEUED`
   are then not re-published automatically.
-- The AI service has no speaker diarization yet; findings never claim several voices.
 - Whisper transcripts can contain recognition errors; they are shown for human review only.
-- Only speech triggers a recording today; non-speech sounds (phone, typing) are not captured yet (Phase 8).
-- Suspicious-audio detection (speaker, sound, whispering, assistance) is designed but not implemented yet; see
-  [audio-research/](audio-research/detection-strategy.md) and Phases 7–13 of the plan.
+- Only speech triggers a recording; non-speech sounds (phone, typing) are not captured or classified.
+- Speakers are anonymous: no voice sample is recorded, so the system never says which voice is the candidate.

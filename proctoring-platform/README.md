@@ -2,21 +2,18 @@
 
 Event-based audio monitoring for online exams: the browser detects speech locally, saves a short
 video+audio clip (with the seconds before the speech) and a 16 kHz WAV for each event, uploads the
-audio to a .NET backend, which queues it on Redis Streams for a Python AI service (speech
-verification and optional transcription today; speaker and sound detection are planned). Results flow back to
-the exam screen.
+audio to a .NET backend, which queues it on Redis Streams for a Python AI service (speech verification, speaker
+diarization with pyannote, voice comparison between the speakers with CAM++, rule-based observations such as
+multiple speakers, overlapping speech and background conversation; transcription optional). Results flow back to the
+exam screen.
 
 > **Complete standalone application.** Frontend, backend, Redis Streams and AI service all live in this repository and
 > run on one machine; there is no dependency on any other proctoring system. Service boundaries are the versioned
 > contracts in [docs/contracts](docs/contracts).
 
-**Status:** Phases 1–6 complete: contracts, .NET backend (sessions, upload, Redis Streams outbox, results, SSE), Python
-AI service (Silero VAD; transcription optional and off by default), and the React exam page with browser VAD that
-saves every stretch of speech as its own 16 kHz WAV, uploads it and shows its status. **Next:** suspicious-audio
-detection (non-speech sound capture, sound classification, speaker analysis, rule engine, reviewer interface) in
-Phases 7–13 - see [docs/implementation-plan.md](docs/implementation-plan.md) and
-[docs/audio-research/](docs/audio-research/integration-design.md). Speaker and sound detection are **not implemented
-yet**.
+**Status:** working end to end - browser speech capture, upload, Redis Streams, AI analysis (speaker diarization,
+voice comparison, observations) and live results on the exam page. Speakers are anonymous: no voice sample is
+recorded and nobody is identified. Earlier plans and dated phase reports are kept in [docs/history/](docs/history/).
 
 ## Documentation
 - [Architecture](docs/architecture.md) — components, data flow, design decisions, privacy controls
@@ -243,7 +240,7 @@ Redis -> backend -> AI service -> frontend, waits for each health check and writ
 .\scripts\run-all.ps1 stop       # stops only what the script started (add -KeepRedis to keep Redis running)
 ```
 
-Baseline results: [docs/results/phase7-baseline.md](docs/results/phase7-baseline.md).
+Baseline results: [docs/history/results/phase7-baseline.md](docs/history/results/phase7-baseline.md).
 
 Manually, the same four processes in this order, each in its own terminal:
 

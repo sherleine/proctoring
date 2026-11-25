@@ -45,9 +45,6 @@ public sealed record EventListResponse(IReadOnlyList<EventStatusResponse> Items)
 public sealed record AudioEventMetadata
 {
     public required Guid EventId { get; init; }
-
-    /// <summary>speech | enrolment (contract 1.1). Defaults to speech for 1.0 clients.</summary>
-    public string EventType { get; init; } = "speech";
     public required int SequenceNumber { get; init; }
     public required DateTimeOffset StartedAt { get; init; }
     public required DateTimeOffset EndedAt { get; init; }

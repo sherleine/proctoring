@@ -4,9 +4,7 @@ import { join } from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { describe, expect, it } from "vitest";
-import { encodeWav, validateWav } from "../src/audio/wav";
 import { evidenceSummary, isInformational, OBSERVATION_LABELS, voiceCheck } from "../src/components/ObservationList";
-import { buildEnrolmentRecord } from "../src/recording/eventMetadata";
 import { describe as describeEvent } from "../src/recording/eventStatus";
 import type { LocalEvent } from "../src/storage/eventStore";
 import type { AnalysisResult } from "../src/types/contracts";
@@ -19,36 +17,6 @@ function schema(name: string) {
   addFormats(ajv);
   return ajv.compile(JSON.parse(readFileSync(join(SCHEMAS, name), "utf8")));
 }
-
-describe("voice sample (enrolment)", () => {
-  it("builds a contract-valid enrolment upload that is marked as such locally", async () => {
-    const wav = encodeWav(new Float32Array(16000 * 15).fill(0.05));
-    const r = await buildEnrolmentRecord({
-      wav, sessionId: "ses_ABCDEFGHJKMNPQRSTVWXYZ012", sequenceNumber: 0, startMs: T0, speechSeconds: 12.5, maxProbability: 0.99,
-      vad: { startThreshold: 0.5, endThreshold: 0.35, modelName: "silero-vad-v5" }, nowMs: T0,
-    });
-    const metadata = JSON.parse(r.metadataJson);
-    const validate = schema("audio-event-metadata.v1.json");
-    expect(validate(metadata), JSON.stringify(validate.errors)).toBe(true);
-    expect(metadata.eventType).toBe("enrolment");
-    expect(metadata.trigger.type).toBe("enrolment");
-    expect(metadata.durationSeconds).toBe(15);
-    expect(Date.parse(metadata.endedAt) - Date.parse(metadata.startedAt)).toBe(15000);
-    expect(r.kind).toBe("enrolment");
-    expect(validateWav(await r.wav!.arrayBuffer()).durationSeconds).toBe(15);
-  });
-
-  it("never claims more speech than the clip contains", async () => {
-    const wav = encodeWav(new Float32Array(16000 * 9).fill(0.05));
-    const r = await buildEnrolmentRecord({
-      wav, sessionId: "ses_ABCDEFGHJKMNPQRSTVWXYZ012", sequenceNumber: 1, startMs: T0, speechSeconds: 40, maxProbability: 1.2,
-      vad: { startThreshold: 0.5, endThreshold: 0.35, modelName: "silero-vad-v5" },
-    });
-    const metadata = JSON.parse(r.metadataJson);
-    expect(metadata.trigger.speechSeconds).toBe(9);
-    expect(metadata.trigger.maxProbability).toBe(1);
-  });
-});
 
 describe("observation display", () => {
   it("has a neutral label for every contract observation type", () => {
@@ -64,25 +32,24 @@ describe("observation display", () => {
     expect(isInformational(o("SPEECH_DETECTED"))).toBe(true);
     expect(isInformational(o("NO_SPEECH_DETECTED", "informational"))).toBe(true);
     expect(isInformational(o("MULTIPLE_SPEAKERS_DETECTED"))).toBe(false);
-    expect(isInformational(o("NON_CANDIDATE_VOICE", "review"))).toBe(false);
+    expect(isInformational(o("BACKGROUND_CONVERSATION_DETECTED", "review"))).toBe(false);
     expect(OBSERVATION_LABELS.MULTIPLE_SPEAKERS).toBe(OBSERVATION_LABELS.MULTIPLE_SPEAKERS_DETECTED); // legacy alias
   });
 
   it("summarises simple evidence values and skips nested objects and notes", () => {
-    expect(evidenceSummary({ similarityToCandidate: 0.04567, regionSeconds: 3.5, thresholds: { same: 0.4 }, note: "x", decision: "LIKELY_NON_CANDIDATE" }))
-      .toBe("similarityToCandidate: 0.046 · regionSeconds: 3.5 · decision: LIKELY_NON_CANDIDATE");
+    expect(evidenceSummary({ levelBelowMainSpeakerDb: 18.456, speechSeconds: 3.5, thresholds: { same: 0.4 }, note: "x", mainSpeaker: "S1" }))
+      .toBe("levelBelowMainSpeakerDb: 18.456 · speechSeconds: 3.5 · mainSpeaker: S1");
   });
 
-  it("describes the voice check without implying misconduct", () => {
-    const base = { speaker: { available: true, reference: "present" as const, comparisons: [] } } as unknown as AnalysisResult;
+  it("shows how many different voices diarization found, without claiming who they are", () => {
     expect(voiceCheck(null)).toBeNull();
-    expect(voiceCheck({ speaker: { available: false, reference: "missing" } } as unknown as AnalysisResult)).toContain("not compared");
-    expect(voiceCheck(base)).toContain("no speech long enough");
-    const withDecisions = (...d: string[]) => ({ speaker: { available: true, reference: "present",
-      comparisons: d.map((decision) => ({ start: 0, end: 3, similarity: 0.5, decision })) } }) as unknown as AnalysisResult;
-    expect(voiceCheck(withDecisions("LIKELY_CANDIDATE"))).toBe("Voice check: candidate voice");
-    expect(voiceCheck(withDecisions("LIKELY_CANDIDATE", "UNCERTAIN"))).toContain("some parts uncertain");
-    expect(voiceCheck(withDecisions("LIKELY_CANDIDATE", "LIKELY_NON_CANDIDATE"))).toContain("differs");
+    expect(voiceCheck({ diarization: { available: false } } as unknown as AnalysisResult)).toBeNull();
+    const diarized = (speakerCount: number, distinctVoices: number | null) =>
+      ({ diarization: { available: true, speakerCount, distinctVoices } }) as unknown as AnalysisResult;
+    expect(voiceCheck(diarized(1, 1))).toBe("Voices: one");
+    expect(voiceCheck(diarized(2, 2))).toBe("Voices: 2 different voices");
+    expect(voiceCheck(diarized(2, 1))).toBe("Voices: one"); // two diarized parts of the same voice
+    expect(voiceCheck(diarized(2, null))).toBe("Voices: 2 different voices"); // voices not compared: diarization count
   });
 });
 

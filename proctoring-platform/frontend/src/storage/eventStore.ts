@@ -5,8 +5,6 @@ export type UploadState = "pending" | "uploading" | "uploaded" | "retry-pending"
 
 export interface LocalEvent {
   eventId: string;
-  
-  kind?: "speech" | "enrolment";
   sessionId: string;
   sequenceNumber: number;
   groupId: string;

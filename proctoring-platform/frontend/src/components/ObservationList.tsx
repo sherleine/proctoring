@@ -4,7 +4,6 @@ export const OBSERVATION_LABELS: Record<ObservationType, string> = {
   MULTIPLE_SPEAKERS_DETECTED: "Multiple speakers detected",
   OVERLAPPING_SPEECH_DETECTED: "Overlapping speech detected",
   BACKGROUND_CONVERSATION_DETECTED: "Background conversation detected",
-  NON_CANDIDATE_VOICE: "Voice differs from the enrolled candidate",
   SPEECH_DETECTED: "Speech detected",
   NO_SPEECH_DETECTED: "No speech detected",
   // deprecated aliases (older results)
@@ -45,14 +44,11 @@ function absoluteTime(eventStartedAt: string, offsetSeconds: number): string {
 
 /** The voice-check line for a speech event (no observation needed to show it). */
 export function voiceCheck(result: AnalysisResult | null): string | null {
-  const speaker = result?.speaker;
-  if (!speaker) return null;
-  if (speaker.reference !== "present") return "Voice check: not compared (no accepted voice sample)";
-  const decisions = new Set((speaker.comparisons ?? []).map((c) => c.decision));
-  if (decisions.size === 0) return "Voice check: no speech long enough to compare";
-  if (decisions.has("LIKELY_NON_CANDIDATE")) return "Voice check: a voice differs from the enrolled voice";
-  if (decisions.has("UNCERTAIN")) return decisions.has("LIKELY_CANDIDATE") ? "Voice check: candidate voice (some parts uncertain)" : "Voice check: uncertain";
-  return "Voice check: candidate voice";
+  // Voices heard in the clip, from speaker diarization. No voice sample is used, so no identity is claimed.
+  const d = result?.diarization;
+  if (!d?.available || typeof d.speakerCount !== "number") return null;
+  const voices = d.distinctVoices ?? d.speakerCount;
+  return voices <= 1 ? "Voices: one" : `Voices: ${voices} different voices`;
 }
 
 export function ObservationList({ result, eventStartedAt }: { result: AnalysisResult | null; eventStartedAt: string }) {

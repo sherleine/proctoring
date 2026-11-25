@@ -6,8 +6,8 @@ using Proctoring.Application.Events;
 namespace Proctoring.Api.Endpoints;
 
 /// <summary>
-/// Contract 1.1 read routes: the session's AI observations (one row each) and its voice-sample status.
-/// Same authentication as the event routes (the session token). The voice embedding is never returned.
+/// Contract 1.1 read route: the session's AI observations (one row each).
+/// Same authentication as the event routes (the session token).
 /// </summary>
 public static partial class ObservationEndpoints
 {
@@ -22,16 +22,11 @@ public static partial class ObservationEndpoints
 
     public sealed record ObservationListResponse(IReadOnlyList<ObservationResponse> Items, string Note);
 
-    public sealed record EnrolmentResponse(string Status, string? Reason, double SpeechSeconds, string EnrolmentEventId,
-        string Model, bool UsedForComparison, DateTime UpdatedAt);
-
     public static void MapObservationEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1/sessions/{sessionId}").WithTags("Observations");
         group.MapGet("/observations", ListAsync).WithName("ListObservations").Produces<ObservationListResponse>()
             .ProducesProblem(StatusCodes.Status401Unauthorized).ProducesProblem(StatusCodes.Status404NotFound);
-        group.MapGet("/enrolment", EnrolmentAsync).WithName("GetEnrolment").Produces<EnrolmentResponse>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<IResult> ListAsync(string sessionId, HttpContext http, ObservationQueryService service, CancellationToken ct)
@@ -47,15 +42,5 @@ public static partial class ObservationEndpoints
         return Results.Ok(new ObservationListResponse(body,
             "Observations with category 'review' are potential observations for human review; 'informational' ones only " +
             "record whether speech was present. None of them is a determination of misconduct."));
-    }
-
-    private static async Task<IResult> EnrolmentAsync(string sessionId, HttpContext http, ObservationQueryService service, CancellationToken ct)
-    {
-        var token = BearerToken.Read(http);
-        if (!SessionIdPattern().IsMatch(sessionId)) return Problems.NotFound(http);
-        var v = await service.EnrolmentAsync(sessionId, token, ct);
-        if (v is null) return Problems.NotFound(http);
-        return Results.Ok(new EnrolmentResponse(v.Status, v.Reason, v.SpeechSeconds, v.EnrolmentEventId.ToString(),
-            v.Model, v.IsUsable, v.UpdatedAt));
     }
 }

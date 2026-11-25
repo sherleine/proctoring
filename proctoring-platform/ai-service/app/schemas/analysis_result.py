@@ -85,16 +85,6 @@ class ErrorInfo(BaseModel):
     deliveryCount: int | None = None
 
 
-class SpeakerStage(BaseModel):
-    """Contract 1.1: comparison of speech regions with the candidate's enrolled voice."""
-    available: bool = False
-    reason: str | None = "No candidate voice comparison for this event"
-    reference: Literal["present", "missing"] = "missing"
-    model: str | None = None
-    thresholds: dict | None = None
-    comparisons: list[dict] = Field(default_factory=list)
-
-
 class AnalysisResult(BaseModel):
     schemaVersion: Literal["1.0", "1.1"] = "1.1"
     eventId: str
@@ -111,8 +101,6 @@ class AnalysisResult(BaseModel):
     findings: list[Finding] = Field(default_factory=list)
     error: ErrorInfo | None = None
     # contract 1.1
-    enrolment: dict | None = None
-    speaker: SpeakerStage = Field(default_factory=SpeakerStage)
     observations: list[dict] = Field(default_factory=list)
 
     def to_payload(self) -> dict:

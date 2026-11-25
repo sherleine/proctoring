@@ -64,7 +64,6 @@ public static class SettingsRegistration
         BindParsed<double>(config, "AUDIO_MIN_DURATION_SECONDS", TryDouble, v => events.MinDurationSeconds = v, errors);
         BindParsed<double>(config, "AUDIO_DURATION_TOLERANCE_SECONDS", TryDouble, v => events.DurationToleranceSeconds = v, errors);
         BindParsed<double>(config, "AUDIO_RETENTION_HOURS", TryDouble, v => events.AudioRetentionHours = v, errors);
-        BindParsed<double>(config, "VOICEPRINT_RETENTION_HOURS", TryDouble, v => events.VoiceprintRetentionHours = v, errors);
         BindParsed<int>(config, "EVENT_CLOCK_SKEW_SECONDS", int.TryParse, v => events.ClockSkewSeconds = v, errors);
         BindParsed<bool>(config, "EVENT_MAINTENANCE_ENABLED", bool.TryParse, v => events.MaintenanceEnabled = v, errors);
         BindParsed<int>(config, "EVENT_MAINTENANCE_INTERVAL_SECONDS", int.TryParse, v => events.MaintenanceIntervalSeconds = v, errors);

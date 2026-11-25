@@ -3,7 +3,6 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Proctoring.Application.Validation;
 using Proctoring.Domain.Events;
-using Proctoring.Domain.Sessions;
 
 namespace Proctoring.Application.Events;
 
@@ -48,8 +47,7 @@ public sealed class ResultIngestionService(
     IContractValidator contracts,
     TimeProvider clock,
     ILogger<ResultIngestionService> logger,
-    IObservationRepository? observations = null,
-    IVoiceprintRepository? voiceprints = null)
+    IObservationRepository? observations = null)
 {
     public const string StartedType = "audio.analysis.started";
     public const string CompletedType = "audio.analysis.completed";
@@ -119,17 +117,14 @@ public sealed class ResultIngestionService(
             if (audioEvent is null) return ProcessingOutcome.DeadLetter("Unknown event (sessionId/eventId)");
 
             var now = clock.GetUtcNow().UtcDateTime;
-            // Contract 1.1: the enrolment embedding is biometric data. It is moved to the session's voiceprint and
-            // removed from the result document, which is what browsers can read.
-            var (resultJson, embeddingJson) = message.MessageType == CompletedType ? SplitEmbedding(payload) : (null, null);
             var changed = message.MessageType switch
             {
                 StartedType => audioEvent.ApplyAnalysisStarted((int?)payload["deliveryCount"] ?? deliveryCount, now),
-                CompletedType => audioEvent.ApplyAnalysisCompleted(resultJson!, deliveryCount, now),
+                CompletedType => audioEvent.ApplyAnalysisCompleted(payload.ToJsonString(), deliveryCount, now),
                 _ => ApplyFailure(audioEvent, payload, deliveryCount, now),
             };
             if (changed && message.MessageType == CompletedType)
-                await StoreDerivedAsync(audioEvent, payload, embeddingJson, now, ct);
+                await StoreObservationsAsync(audioEvent, payload, now, ct);
             if (!changed)
             {
                 logger.LogInformation("{MessageType} for event {EventId} ignored (event is {Status})", message.MessageType, eventId, audioEvent.Status);
@@ -142,37 +137,9 @@ public sealed class ResultIngestionService(
         }
     }
 
-    /// <summary>The result document without the embedding (replaced by embeddingStored=true), and the embedding itself.</summary>
-    private static (string ResultJson, string? EmbeddingJson) SplitEmbedding(JsonNode payload)
+    /// <summary>Observation rows (contract 1.1), saved in the same transaction as the event.</summary>
+    private async Task StoreObservationsAsync(AudioEvent audioEvent, JsonNode payload, DateTime now, CancellationToken ct)
     {
-        var copy = payload.DeepClone();
-        if (copy["enrolment"] is JsonObject enrolment && enrolment["embedding"] is JsonArray embedding)
-        {
-            var embeddingJson = embedding.ToJsonString();
-            enrolment["embedding"] = null;
-            enrolment["embeddingStored"] = true;
-            return (copy.ToJsonString(), embeddingJson);
-        }
-        return (copy.ToJsonString(), null);
-    }
-
-    /// <summary>Voiceprint (enrolment events) and observation rows, saved in the same transaction as the event.</summary>
-    private async Task StoreDerivedAsync(AudioEvent audioEvent, JsonNode payload, string? embeddingJson, DateTime now, CancellationToken ct)
-    {
-        if (voiceprints is not null && payload["enrolment"] is JsonObject enrolment && IsEnrolmentEvent(audioEvent))
-        {
-            var status = (string?)enrolment["status"] ?? "rejected";
-            var reason = (string?)enrolment["reason"];
-            var speech = (double?)enrolment["speechSeconds"] ?? 0;
-            var model = (string?)enrolment["embeddingModel"] ?? "unknown";
-            var existing = await voiceprints.FindAsync(audioEvent.SessionId, ct);
-            if (existing is null)
-                voiceprints.Add(SessionVoiceprint.Create(audioEvent.SessionId, audioEvent.EventId, status, reason, speech, embeddingJson, model, now));
-            else
-                existing.Apply(audioEvent.EventId, status, reason, speech, embeddingJson, model, now);
-            logger.LogInformation("Voice sample of session {SessionId} processed: {Status}", audioEvent.SessionId, status);
-        }
-
         if (observations is null || payload["observations"] is not JsonArray items) return;
         foreach (var item in items.OfType<JsonObject>())
         {
@@ -191,18 +158,6 @@ public sealed class ResultIngestionService(
                 item["supportingEvidence"]!.ToJsonString(), (string)item["modelName"]!, (string)item["modelVersion"]!,
                 DateTime.Parse((string)item["createdAt"]!, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal),
                 now, (string?)item["category"]));
-        }
-    }
-
-    private static bool IsEnrolmentEvent(AudioEvent e)
-    {
-        try
-        {
-            return (string?)JsonNode.Parse(e.MetadataJson)?["eventType"] == "enrolment";
-        }
-        catch (JsonException)
-        {
-            return false;
         }
     }
 
