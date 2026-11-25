@@ -9,6 +9,8 @@
   .\scripts\run-all.ps1 status        # what is running, health, URLs
   .\scripts\run-all.ps1 stop          # stop the services this script started, then Redis (data is kept)
   .\scripts\run-all.ps1 stop -KeepRedis
+  .\scripts\run-all.ps1 stop -Service ai      # one service only (redis | backend | ai | frontend)
+  .\scripts\run-all.ps1 start -Service ai     # the others must already be running
 
 .NOTES
   - Works from any current directory; all paths are derived from this script's location.
@@ -25,6 +27,7 @@
 param(
     [ValidateSet("start", "stop", "status")] [string] $Action = "start",
     [switch] $KeepRedis,
+    [ValidateSet("all", "redis", "backend", "ai", "frontend")] [string] $Service = "all",
     [int] $TimeoutSeconds = 240
 )
 
@@ -215,10 +218,18 @@ function Invoke-Status {
     }
 }
 
+function Want([string] $name) { return $Service -eq "all" -or $Service -eq $name }
+
+function Test-Running([string] $name) {
+    $entry = @(Read-State) | Where-Object { $_.name -eq $name } | Select-Object -First 1
+    return [bool]($entry -and (Get-RecordedProcess $entry))
+}
+
 function Invoke-Stop {
     $ErrorActionPreference = "Continue"
-    Write-Step "Stopping services started by run-all"
-    foreach ($name in "frontend", "ai", "backend") { Stop-Recorded $name }
+    Write-Step "Stopping services started by run-all ($Service)"
+    foreach ($name in "frontend", "ai", "backend") { if (Want $name) { Stop-Recorded $name } }
+    if ($Service -ne "all" -and $Service -ne "redis") { return }
     if ($KeepRedis) {
         Write-Ok "Redis left running (-KeepRedis)"
     } else {
@@ -258,6 +269,7 @@ function Test-Prerequisites {
     if (-not (Test-Path (Join-Path $BackendProject "Proctoring.Api.csproj"))) { $problems += "Backend project not found at backend/src/Proctoring.Api." }
 
     foreach ($pair in @(@("backend", $BackendPort), @("ai", $AiPort), @("frontend", $FrontendPort))) {
+        if (-not (Want $pair[0])) { continue }
         $entry = @(Read-State) | Where-Object { $_.name -eq $pair[0] } | Select-Object -First 1
         $ours = $entry -and (Get-RecordedProcess $entry)
         if ((Test-PortListening $pair[1]) -and -not $ours) {
@@ -285,6 +297,7 @@ function Invoke-Start {
     New-Item -ItemType Directory -Force $AudioStore | Out-Null
 
     # 1. Redis
+    if (Want "redis") {
     Write-Step "Starting Redis (docker compose, service 'redis')"
     $savedRedisPort = $env:REDIS_PORT
     $env:REDIS_PORT = "$RedisPort"   # used by infra/docker-compose.yml for the published port
@@ -296,8 +309,11 @@ function Invoke-Start {
     if ($composeExit -ne 0) { Show-LogTail "redis"; Fail "docker compose could not start Redis (exit $composeExit)" }
     Wait-Until "redis" $null { (Get-RedisHealth) -eq "healthy" } 60
     Write-Ok "Redis healthy - $($Urls.redis)"
+    }
 
     # 2. Backend
+    if ((Want "backend") -and (Test-Running "backend")) { Write-Ok "Backend already running" }
+    elseif (Want "backend") {
     Write-Step "Starting backend (dotnet run; the first start compiles, which can take a minute)"
     $backendEnv = @{
         ASPNETCORE_ENVIRONMENT = "Development"
@@ -310,9 +326,12 @@ function Invoke-Start {
     $backend = Start-ServiceProcess "backend" (Get-Command dotnet).Source @("run", "--project", "`"$BackendProject`"", "--no-launch-profile") $BackendDir $backendEnv
     Wait-Until "backend" $backend { (Get-HttpStatus "http://localhost:$BackendPort/health/ready") -eq 200 } $TimeoutSeconds
     Write-Ok "Backend ready - $($Urls.backend)"
+    }
 
     # 3. AI service
-    Write-Step "Starting AI service (uvicorn; loads the Silero VAD model)"
+    if ((Want "ai") -and (Test-Running "ai")) { Write-Ok "AI service already running" }
+    elseif (Want "ai") {
+    Write-Step "Starting AI service (uvicorn; loads Silero VAD, CAM++ and pyannote)"
     $aiEnv = @{
         REDIS_CONNECTION     = "localhost:$RedisPort"
         AUDIO_STORE_PATH     = $AudioStore
@@ -321,14 +340,18 @@ function Invoke-Start {
     $ai = Start-ServiceProcess "ai" $AiPython @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "$AiPort") $AiDir $aiEnv
     Wait-Until "ai" $ai { (Get-HttpStatus "http://127.0.0.1:$AiPort/health/ready") -eq 200 } $TimeoutSeconds
     Write-Ok "AI service ready - $($Urls.ai)"
+    }
 
     # 4. Frontend
+    if ((Want "frontend") -and (Test-Running "frontend")) { Write-Ok "Frontend already running" }
+    elseif (Want "frontend") {
     Write-Step "Starting frontend (vite dev server)"
     $feEnv = @{}
     if ($BackendPort -ne 5080) { $feEnv["VITE_API_BASE_URL"] = "http://localhost:$BackendPort" }
     $frontend = Start-ServiceProcess "frontend" (Get-Command npm.cmd).Source @("run", "dev", "--", "--port", "$FrontendPort", "--strictPort") $FrontendDir $feEnv
     Wait-Until "frontend" $frontend { (Get-HttpStatus "http://localhost:$FrontendPort/") -eq 200 } 120
     Write-Ok "Frontend ready - $($Urls.frontend)"
+    }
 
     Write-Host ""
     Invoke-Status

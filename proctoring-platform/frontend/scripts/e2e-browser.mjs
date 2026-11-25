@@ -1,12 +1,4 @@
-// Browser end-to-end test: real Chrome (headless), the real frontend, backend, Redis and AI service.
-//
-// Chrome's fake microphone plays a WAV file instead of a real microphone, so the full browser pipeline runs:
-// getUserMedia -> AudioWorklet (resampling) -> Silero VAD worker -> event clip -> WAV -> upload -> Redis ->
-// AI service (Silero + Whisper) -> backend -> SSE -> transcript in the page.
-// This proves the integration, NOT microphone handling with a real voice - that still needs a manual test.
-//
-//   npm run e2e            (frontend dev server, backend, Redis and AI service must be running)
-//   Optional: E2E_URL=http://localhost:5173  CHROME_PATH=...
+
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,7 +11,7 @@ const SPEECH = join(here, "..", "..", "ai-service", "tests", "fixtures", "speech
 const outDir = join(here, "..", "test-results");
 mkdirSync(outDir, { recursive: true });
 
-/** 16 kHz mono 16-bit WAV: silence gaps (seconds) with the speech fixture between them; gaps.length - 1 utterances. */
+
 function makeAudio(name, gaps) {
   const src = readFileSync(SPEECH);
   const speech = src.subarray(src.indexOf("data") + 8);
@@ -80,7 +72,7 @@ async function runScenario(name, audioFile, { expectEvents, waitMs, failUploads 
     await page.waitForFunction(() => document.body.innerText.includes("Speech detection: active"), { timeout: 30_000 });
     const t0 = Date.now();
 
-    // Wait until the expected number of events is saved (uploaded) and analysed, or the time is up.
+   
     if (expectEvents > 0) {
       await page.waitForFunction(
         (n) => [...document.querySelectorAll(".event")].filter((e) => /Audio saved \(analysed/.test(e.innerText.replace(/\s+/g, " "))).length >= n,
@@ -94,7 +86,7 @@ async function runScenario(name, audioFile, { expectEvents, waitMs, failUploads 
     const status = await page.evaluate(() => document.querySelector(".badges")?.innerText.replace(/\s+/g, " "));
     await page.screenshot({ path: join(outDir, `${name}.png`), fullPage: true });
 
-    // Inspect what the browser stored: the upload metadata of each event.
+    
     const stored = await page.evaluate(() => new Promise((resolve) => {
       const req = indexedDB.open("proctoring-poc");
       req.onsuccess = () => {
@@ -127,7 +119,7 @@ function wavInfo(bytes) {
     seconds: (b.length - 44) / 32000, voicedSeconds: loud / 16000 };
 }
 
-// 1. Repeated speech: four utterances (about 3.5 s each) separated by 4-6 s of silence.
+
 const speech = await runScenario("speech", makeAudio("e2e-speech.wav", [4, 5, 6, 5, 6]), { expectEvents: 4, waitMs: 120_000 });
 results.push(speech);
 check(speech.summary.length === 4, `four utterances produced four separate events (got ${speech.summary.length})`);
@@ -142,25 +134,33 @@ for (const [i, e] of speech.stored.sort((a, b) => a.meta.sequenceNumber - b.meta
     `event ${i + 1}: contains the speech (${w?.voicedSeconds.toFixed(2)} s voiced), pre-roll ${e.meta.preEventSeconds} s, no long silence (${w?.seconds.toFixed(2)} s total)`);
   check(e.result?.speech?.verified === true && e.result?.transcription?.available === false,
     `event ${i + 1}: server confirmed speech; no transcription required (${e.result?.transcription?.reason})`);
+  
+  const d = e.result?.diarization;
+  const kinds = (e.result?.observations ?? []).map((o) => `${o.observationType}/${o.category}`);
+  check(d?.available === true && d?.speakerCount === 1 && kinds.includes("SPEECH_DETECTED/informational")
+      && !(e.result?.observations ?? []).some((o) => o.category === "review"),
+    `event ${i + 1}: diarized (${d?.speakerCount} speaker), observations ${JSON.stringify(kinds)} - none for review`);
 }
+check(speech.summary.every((t) => /Speech detected \(\d+\.\d s\)/.test(t)),
+  "every event shows the informational 'Speech detected' line on the page");
 const meta = speech.stored[0]?.meta;
 const startedAt = meta ? Date.parse(meta.startedAt) : 0;
 check(startedAt >= speech.clickedAt - 1000 && startedAt <= speech.clickedAt + 30_000,
   `event timestamps follow "Start exam" (${meta?.startedAt}), not page load`);
 check((speech.stored[0]?.video ?? 0) > 0, `local video clip stored in IndexedDB (${speech.stored[0]?.video} bytes, not uploaded)`);
 
-// 2. Silence only: no events
+
 const silence = await runScenario("silence", makeAudio("e2e-silence.wav", [20]), { expectEvents: 0, waitMs: 20_000 });
 results.push(silence);
 check(silence.summary.length === 0, `20 s of silence produced no events (got ${silence.summary.length})`);
 
-// 3. Backend unreachable for the first two upload attempts: retried automatically, then completed.
+
 const retry = await runScenario("upload-retry", makeAudio("e2e-retry.wav", [4, 6]), { expectEvents: 1, waitMs: 120_000, failUploads: 2 });
 results.push(retry);
 check(retry.failedUploads === 2 && retry.retryShown, `upload failed twice (network), page showed the automatic retry`);
 check(retry.summary.length === 1 && /Audio saved/.test(retry.summary[0]), "event uploaded once on retry and saved");
 
-// 4. Permission denied: clear message, no session started without devices.
+
 {
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ["--deny-permission-prompts"] });
   try {

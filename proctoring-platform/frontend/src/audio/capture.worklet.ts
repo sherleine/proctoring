@@ -1,5 +1,4 @@
-// AudioWorklet (audio thread): microphone -> mono -> 16 kHz (band-limited resampling) -> 512-sample frames,
-// posted to the VAD worker through a MessagePort. The audio thread never blocks on the model.
+
 import { StreamingResampler } from "./resampler";
 
 declare const sampleRate: number;
@@ -34,7 +33,7 @@ class CaptureProcessor extends AudioWorkletProcessor {
     if (!this.target || !channels || channels.length === 0) return true;
     if (!this.started) {
       this.started = true;
-      // Audio-clock time of the first captured sample: lets the main thread map sample indices to wall time.
+      
       this.target.postMessage({ type: "started", contextTime: currentTime, inputRate: sampleRate });
     }
     const n = channels[0].length;

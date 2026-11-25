@@ -3,19 +3,13 @@
 __pycache__/
 *.pyc
 node_modules/
-frontend/dist/
-frontend/public/models/
-frontend/public/ort/
+archive/legacy-prototype/frontend/dist/
+archive/legacy-prototype/frontend/public/models/
+archive/legacy-prototype/frontend/public/ort/
 data/
-tests/fixtures/audio/
-.env
-.venv/
-venv/
-__pycache__/
-.pytest_cache/
-node_modules/
-bin/
-obj/
-dist/
-build/
+archive/legacy-prototype/tests/fixtures/audio/
+
+# Evaluation datasets (LibriSpeech etc.): downloaded locally, never committed (see docs for the download step)
+eval-data/
+# Stray logs
 *.log

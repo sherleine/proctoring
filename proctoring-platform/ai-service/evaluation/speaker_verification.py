@@ -91,7 +91,7 @@ def main() -> None:
     ids = list(data)
     split = {sid: ("calibration" if i % 2 == 0 else "evaluation") for i, sid in enumerate(ids)}
 
-    enrolments, segments, embed_times = {}, [], []
+    enrolments, segments, embed_times, enrol_inputs = {}, [], [], {}
     t_start = time.perf_counter()
     for sid in ids:
         chapters = list(data[sid])
@@ -106,6 +106,7 @@ def main() -> None:
                 break
         enrol_audio = np.concatenate(parts)
         segs = vad.detect(enrol_audio).segments
+        enrol_inputs[sid] = (enrol_audio, segs)
         result = speaker.enrol(enrol_audio, segs)
         enrolments[sid] = {"status": result.status, "speech": result.speech_seconds,
                            "consistency": result.self_consistency,
@@ -153,12 +154,29 @@ def main() -> None:
                          and all(t[k] == v for k, v in f.items())])
 
     cal_t, cal_n = scores("calibration", True), scores("calibration", False)
-    different = float(np.percentile(cal_t, 1))
-    same = float(np.percentile(cal_n, 99))
-    note = None
+    # Conservative choice: a false LIKELY_NON_CANDIDATE on the candidate's own voice becomes a false observation,
+    # so `different` is the 1st percentile of target scores in the HARDEST calibration cell (lowest p1 over
+    # length x condition), and `same` is the 99th percentile of SAME-GENDER non-target scores (the hardest
+    # impostors). Between the two the system abstains (UNCERTAIN).
+    cells = [(c, l) for c in ("clean", "degraded") for l in LENGTHS]
+    p1 = {f"{c}/{l}s": float(np.percentile(scores("calibration", True, condition=c, length=l), 1)) for c, l in cells}
+    p99 = {f"{c}/{l}s": float(np.percentile(scores("calibration", False, condition=c, length=l, sameGender=True), 99))
+           for c, l in cells}
+    different = min(p1.values())
+    same = max(p99.values())
+    note = {"targetP1PerCell": {k: round(v, 4) for k, v in p1.items()},
+            "sameGenderNonTargetP99PerCell": {k: round(v, 4) for k, v in p99.items()}}
     if different >= same:  # distributions separate: keep an uncertain band around the middle
         mid = (different + same) / 2
-        same, different, note = max(same, mid + 0.02), min(different, mid - 0.02), "separated; band around midpoint"
+        same, different = max(same, mid + 0.02), min(different, mid - 0.02)
+        note["adjusted"] = "separated; band around midpoint"
+    np.savez_compressed(args.out.with_suffix(".scores.npz"),
+                        score=np.array([t["score"] for t in trials], np.float32),
+                        target=np.array([t["target"] for t in trials]),
+                        length=np.array([t["length"] for t in trials], np.float32),
+                        degraded=np.array([t["condition"] == "degraded" for t in trials]),
+                        same_gender=np.array([t["sameGender"] for t in trials]),
+                        evaluation=np.array([t["split"] == "evaluation" for t in trials]))
 
     def outcome(arr):
         n = len(arr)
@@ -182,6 +200,28 @@ def main() -> None:
                     "nonTarget": outcome(scores(split_name, False, condition=condition, length=length)),
                     "nonTargetSameGender": outcome(scores(split_name, False, condition=condition, length=length, sameGender=True)),
                 }
+    # Re-run every (single-speaker) enrolment with the calibrated thresholds: the pairwise "more than one voice"
+    # rule uses `different`, so genuine samples must still be accepted.
+    speaker.thresholds = SpeakerThresholds(same=same, different=different)
+    final = {sid: speaker.enrol(*enrol_inputs[sid]) for sid in ids}
+    report["enrolmentWithCalibratedThresholds"] = {
+        "accepted": sum(r.status == "accepted" for r in final.values()),
+        "uncertain": {sid: r.reason for sid, r in final.items() if r.status == "uncertain"},
+        "rejected": {sid: r.reason for sid, r in final.items() if r.status == "rejected"},
+        "consistency": {"min": round(min(r.self_consistency or 0 for r in final.values()), 4),
+                        "median": round(float(np.median([r.self_consistency or 0 for r in final.values()])), 4)},
+    }
+    # Two-voice enrolment check: half of speaker A's sample + half of another speaker B's sample.
+    mixed = {}
+    for i in range(0, len(ids) - 1, 2):
+        a, b = ids[i], ids[i + 1]
+        (xa, _), (xb, _) = enrol_inputs[a], enrol_inputs[b]
+        half = min(len(xa), len(xb)) // 2
+        combo = np.concatenate([xa[:half], xb[:half]])
+        mixed[f"{a}+{b}"] = speaker.enrol(combo, vad.detect(combo).segments).status
+    report["twoVoiceEnrolments"] = {"n": len(mixed), "notAccepted": sum(s != "accepted" for s in mixed.values()),
+                                    "statuses": mixed}
+
     for length in LENGTHS:
         ts = [t for t, l in embed_times if l == length]
         report["timing"][f"{length}s"] = {"medianMs": round(float(np.median(ts)) * 1000, 2), "n": len(ts)}

@@ -49,7 +49,7 @@ used only for internal evaluation.
 A script mixes single-speaker recordings and sound events at controlled levels to produce exact labels:
 second voice at −6, −12, −20 dB relative to the candidate; overlap 0 %, 25 %, 50 %; events at known offsets;
 fixed random seed. Mixtures supplement, never replace, real recordings (mixing does not reproduce room acoustics).
-The POC's TTS fixtures (`tests/fixtures/generate_speech.ps1`) are useful for pipeline tests but **not** for speaker
+The POC's TTS fixtures (`tests/fixtures/generate_speech.ps1` of the first prototype, in the git history at commit `38f9dcf`) are useful for pipeline tests but **not** for speaker
 tests (synthetic voices are unrealistically consistent).
 
 ### 2.4 Labels and layout

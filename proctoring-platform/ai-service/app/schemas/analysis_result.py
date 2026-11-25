@@ -60,10 +60,13 @@ class TranscriptionStage(BaseModel):
 
 class DiarizationStage(BaseModel):
     available: bool = False
-    reason: str | None = "Speaker diarization is not included in this version"
+    reason: str | None = "Speaker diarization was not run for this event"
     speakerCount: int | None = None
     turns: list[dict] = Field(default_factory=list)
     overlaps: list[Span] = Field(default_factory=list)
+    # contract 1.1 additions (optional): per anonymous speaker label, speech amounts, level and voice role
+    speakers: list[dict] = Field(default_factory=list)
+    distinctVoices: int | None = None
 
 
 class Finding(BaseModel):
@@ -82,8 +85,18 @@ class ErrorInfo(BaseModel):
     deliveryCount: int | None = None
 
 
+class SpeakerStage(BaseModel):
+    """Contract 1.1: comparison of speech regions with the candidate's enrolled voice."""
+    available: bool = False
+    reason: str | None = "No candidate voice comparison for this event"
+    reference: Literal["present", "missing"] = "missing"
+    model: str | None = None
+    thresholds: dict | None = None
+    comparisons: list[dict] = Field(default_factory=list)
+
+
 class AnalysisResult(BaseModel):
-    schemaVersion: Literal["1.0"] = "1.0"
+    schemaVersion: Literal["1.0", "1.1"] = "1.1"
     eventId: str
     sessionId: str
     candidateId: str
@@ -97,6 +110,10 @@ class AnalysisResult(BaseModel):
     diarization: DiarizationStage = Field(default_factory=DiarizationStage)
     findings: list[Finding] = Field(default_factory=list)
     error: ErrorInfo | None = None
+    # contract 1.1
+    enrolment: dict | None = None
+    speaker: SpeakerStage = Field(default_factory=SpeakerStage)
+    observations: list[dict] = Field(default_factory=list)
 
     def to_payload(self) -> dict:
         payload = self.model_dump(mode="json", exclude_none=False)

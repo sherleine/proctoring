@@ -34,6 +34,14 @@ def test_decision_bands(similarity, expected):
     assert service().decide(similarity) == expected
 
 
+def test_low_similarity_on_a_short_region_is_uncertain_not_non_candidate():
+    svc = service(embed=lambda x: unit([0, 1]))  # similarity 0 with the reference
+    short = svc.compare(np.zeros(SR * 5, np.float32), 0.0, 2.0, unit([1, 0]))
+    long = svc.compare(np.zeros(SR * 5, np.float32), 0.0, 3.5, unit([1, 0]))
+    assert short.decision == UNCERTAIN and "not decided" in short.reason
+    assert long.decision == LIKELY_NON_CANDIDATE
+
+
 def test_short_segments_are_never_decided():
     svc = service(embed=lambda x: pytest.fail("must not embed a too-short segment"))
     result = svc.compare(np.zeros(SR * 3, np.float32), 0.0, 1.0, unit([1, 0]))

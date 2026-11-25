@@ -1,11 +1,4 @@
-// Event video clips with pre-roll, using only MediaRecorder.
-//
-// MediaRecorder cannot cut a playable WebM out of a running recording, so two recorders run in turn:
-// each records a segment of SEGMENT_MS and restarts, offset by half a segment. When speech starts, the
-// recorder whose current segment began at or before the clip start is kept running ("held") until the
-// event ends - its file therefore contains the pre-event video. The clip's own start time is stored so it
-// can be aligned with the audio (it usually starts 0-3 s before the audio clip).
-// Video stays in the browser (IndexedDB); it is never uploaded.
+
 
 const SEGMENT_MS = 6000;
 
@@ -46,7 +39,7 @@ export class VideoClipRecorder {
     }
   }
 
-  /** Speech started: keeps the recorder that covers `clipStartEpochMs` running. Returns a handle for endClip(). */
+  
   beginClip(clipStartEpochMs: number): object | null {
     if (!this.running) return null;
     const candidates = this.slots.filter((s) => s.recorder && !s.held && s.recorder.state === "recording");
@@ -58,7 +51,7 @@ export class VideoClipRecorder {
     return slot;
   }
 
-  /** Event ended: stops that recorder and returns its clip (null if nothing was recorded). */
+  
   async endClip(handle: object | null): Promise<VideoClip | null> {
     const slot = this.slots.find((s) => s === handle);
     if (!slot?.held || !slot.recorder) return null;
@@ -81,7 +74,7 @@ export class VideoClipRecorder {
     if (!this.running || slot.held) return;
     if (slot.recorder && slot.recorder.state !== "inactive") {
       slot.recorder.ondataavailable = null;
-      slot.recorder.stop(); // segment not needed: discard
+      slot.recorder.stop(); 
     }
     if (!this.videoOnly.getVideoTracks().some((t) => t.readyState === "live")) {
       slot.recorder = null;

@@ -114,6 +114,7 @@ app.MapOpenApi(); // OpenAPI document at /openapi/v1.json
 app.MapHealthEndpoints();
 app.MapSessionEndpoints();
 app.MapEventEndpoints();
+app.MapObservationEndpoints();
 app.MapUpdateEndpoints();
 
 app.Run();

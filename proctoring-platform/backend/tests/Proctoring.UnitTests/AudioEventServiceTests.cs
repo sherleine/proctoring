@@ -76,10 +76,12 @@ public sealed class EventHarness : IDisposable
             Clock, Options.Create(SessionOptions), NullLogger<SessionService>.Instance);
         var repo = WrapRepository(new EfAudioEventRepository(db, new Proctoring.Infrastructure.Notifications.InProcessEventUpdateNotifier()));
         var store = WrapStore(Store);
-        var publisher = new EventPublisher(repo, store, Queue, Contracts, Clock, Options.Create(EventOptions), NullLogger<EventPublisher>.Instance);
+        var publisher = new EventPublisher(repo, store, Queue, Contracts, Clock, Options.Create(EventOptions), NullLogger<EventPublisher>.Instance,
+            new EfVoiceprintRepository(db));
         var events = new AudioEventService(sessions, repo, store, publisher, Contracts, Clock, Options.Create(EventOptions),
             Options.Create(SessionOptions), Options.Create(Policy), NullLogger<AudioEventService>.Instance);
-        var maintenance = new EventMaintenance(repo, store, publisher, Clock, Options.Create(EventOptions), NullLogger<EventMaintenance>.Instance);
+        var maintenance = new EventMaintenance(repo, store, publisher, Clock, Options.Create(EventOptions), NullLogger<EventMaintenance>.Instance,
+            new EfVoiceprintRepository(db));
         return new Scope(db, sessions, events, maintenance, store);
     }
 

@@ -1,9 +1,9 @@
-// 16 kHz / mono / 16-bit PCM WAV - exactly what the backend's WavValidator accepts.
+
 
 export const WAV_SAMPLE_RATE = 16_000;
 const HEADER_BYTES = 44;
 
-/** Float samples in [-1, 1] -> canonical 44-byte-header PCM WAV. Values outside the range are clipped. */
+ 
 export function encodeWav(samples: Float32Array, sampleRate = WAV_SAMPLE_RATE): ArrayBuffer {
   const dataBytes = samples.length * 2;
   const buffer = new ArrayBuffer(HEADER_BYTES + dataBytes);
@@ -15,13 +15,13 @@ export function encodeWav(samples: Float32Array, sampleRate = WAV_SAMPLE_RATE): 
   view.setUint32(4, 36 + dataBytes, true);
   ascii(8, "WAVE");
   ascii(12, "fmt ");
-  view.setUint32(16, 16, true); // fmt chunk size
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, 1, true); // mono
+  view.setUint32(16, 16, true); 
+  view.setUint16(20, 1, true); 
+  view.setUint16(22, 1, true); 
   view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true); // byte rate
-  view.setUint16(32, 2, true); // block align
-  view.setUint16(34, 16, true); // bits per sample
+  view.setUint32(28, sampleRate * 2, true); 
+  view.setUint16(32, 2, true); 
+  view.setUint16(34, 16, true); 
   ascii(36, "data");
   view.setUint32(40, dataBytes, true);
   for (let i = 0; i < samples.length; i++) {
@@ -39,7 +39,7 @@ export interface WavInfo {
   durationSeconds: number;
 }
 
-/** Parses the RIFF chunks and checks the upload format. Throws with a clear message otherwise. */
+
 export function validateWav(buffer: ArrayBuffer): WavInfo {
   const view = new DataView(buffer);
   const tag = (offset: number) => String.fromCharCode(...new Uint8Array(buffer, offset, 4));

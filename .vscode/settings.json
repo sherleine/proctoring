@@ -1,0 +1,9 @@
+{
+  // Python (Pylance): use the AI service's own environment (created by `pip install -r requirements.txt`),
+  // so imports like `redis`, `pyannote.audio` and the service's own `app` package resolve.
+  "python.defaultInterpreterPath": "${workspaceFolder}/proctoring-platform/ai-service/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": ["${workspaceFolder}/proctoring-platform/ai-service"],
+  "python.testing.pytestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}/proctoring-platform/ai-service",
+  "python.testing.pytestArgs": ["proctoring-platform/ai-service/tests"]
+}

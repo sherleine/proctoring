@@ -62,6 +62,37 @@
           "description": "Added in 1.1 (optional): storage key relative to the audio store root. Consumers that mount the store elsewhere resolve the file from their own AUDIO_STORE_PATH + key instead of the backend's absolute uri."
         }
       }
+    },
+    "speakerReference": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Contract 1.1 (optional): the session's accepted candidate voice reference, added by the backend for speech events only. Biometric data: sent only on the internal stream, never to browsers.",
+      "additionalProperties": false,
+      "required": [
+        "embedding",
+        "model",
+        "enrolmentEventId"
+      ],
+      "properties": {
+        "embedding": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 16,
+          "maxItems": 4096
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "enrolmentEventId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
     }
   }
 }

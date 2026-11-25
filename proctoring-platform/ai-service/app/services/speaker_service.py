@@ -39,10 +39,15 @@ class SpeakerThresholds:
     same: float
     different: float
     min_segment_seconds: float = 1.5
+    # Shorter regions are never called LIKELY_NON_CANDIDATE (only LIKELY_CANDIDATE / UNCERTAIN): on the
+    # calibration speakers, genuine 1.5 s segments overlapped with same-gender impostors; from 3 s they did not.
+    min_non_candidate_seconds: float = 3.0
 
     def __post_init__(self) -> None:
         if not -1.0 <= self.different < self.same <= 1.0:
             raise ValueError("speaker thresholds must satisfy -1 <= different < same <= 1")
+        if self.min_non_candidate_seconds < self.min_segment_seconds:
+            raise ValueError("min_non_candidate_seconds must be >= min_segment_seconds")
 
 
 @dataclass(frozen=True)
@@ -202,12 +207,38 @@ class SpeakerService:
             similarity = float(self.embed(segment) @ reference)
         except ValueError as exc:
             return Comparison(start, end, None, UNCERTAIN, str(exc))
-        return Comparison(start, end, similarity, self.decide(similarity))
+        decision = self.decide(similarity, end - start)
+        reason = None
+        if decision == UNCERTAIN and similarity <= self.thresholds.different:
+            reason = f"low similarity, but shorter than {self.thresholds.min_non_candidate_seconds:.1f} s: not decided"
+        return Comparison(start, end, similarity, decision, reason)
 
-    def decide(self, similarity: float) -> str:
+    def compare_audio(self, audio: np.ndarray, start: float, end: float, reference: np.ndarray,
+                      extra: dict | None = None) -> Comparison:
+        """Compares already-selected speech (e.g. one diarized speaker's non-overlapping speech, concatenated) with
+        the reference. The decision uses the amount of SPEECH, not the time span."""
+        seconds = len(audio) / SAMPLE_RATE
+        info = {**(extra or {}), "speechSeconds": round(seconds, 2)}
+        if seconds < self.thresholds.min_segment_seconds:
+            return Comparison(start, end, None, UNCERTAIN,
+                              f"only {seconds:.1f} s of speech (< {self.thresholds.min_segment_seconds:.1f} s): too short to compare",
+                              info)
+        try:
+            similarity = float(self.embed(audio) @ reference)
+        except ValueError as exc:
+            return Comparison(start, end, None, UNCERTAIN, str(exc), info)
+        decision = self.decide(similarity, seconds)
+        reason = None
+        if decision == UNCERTAIN and similarity <= self.thresholds.different:
+            reason = f"low similarity, but less than {self.thresholds.min_non_candidate_seconds:.1f} s of speech: not decided"
+        return Comparison(start, end, similarity, decision, reason, info)
+
+    def decide(self, similarity: float, seconds: float | None = None) -> str:
         if similarity >= self.thresholds.same:
             return LIKELY_CANDIDATE
         if similarity <= self.thresholds.different:
+            if seconds is not None and seconds < self.thresholds.min_non_candidate_seconds:
+                return UNCERTAIN
             return LIKELY_NON_CANDIDATE
         return UNCERTAIN
 

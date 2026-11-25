@@ -1,5 +1,4 @@
-// Main-thread wiring: MediaStream -> AudioContext -> AudioWorklet (16 kHz frames) -> VAD worker.
-// The worklet and the worker talk directly through a MessageChannel, so the UI thread only sees results.
+
 import workletUrl from "./capture.worklet.ts?worker&url";
 import type { DetectorConfig } from "./eventDetector";
 import type { WorkerIn, WorkerOut } from "./vad.worker";
@@ -24,7 +23,7 @@ export class AudioPipeline {
 
   constructor(private readonly options: PipelineOptions) {}
 
-  /** Wall-clock time (epoch ms) of an absolute 16 kHz sample index. */
+  
   epochOfSample(sample: number): number {
     if (this.sample0EpochMs === null) throw new Error("Audio clock not started yet");
     return this.sample0EpochMs + (sample / 16_000) * 1000;
@@ -38,12 +37,12 @@ export class AudioPipeline {
     return this.ctx?.state ?? "closed";
   }
 
-  /** Tries to resume a suspended/interrupted context (e.g. after the watchdog noticed missing audio). */
+  
   async resume(): Promise<void> {
     if (this.ctx && this.ctx.state !== "running" && this.ctx.state !== "closed") await this.ctx.resume().catch(() => undefined);
   }
 
-  /** Loads the model (once) and starts processing. Rejects with a readable error on any failure. */
+  
   async start(stream: MediaStream): Promise<void> {
     if (typeof AudioWorkletNode === "undefined" || typeof WebAssembly === "undefined")
       throw new Error("This browser does not support AudioWorklet/WebAssembly. Use a current Chrome or Edge.");
@@ -64,7 +63,7 @@ export class AudioPipeline {
 
     const ctx = new AudioContext({ latencyHint: "interactive" });
     this.ctx = ctx;
-    // Chrome can suspend or interrupt the context (device change, OS audio events): report it and resume.
+    
     ctx.onstatechange = () => {
       this.options.onMessage({ type: "context-state", state: ctx.state as AudioContextState });
       if (ctx.state === "suspended" || (ctx.state as string) === "interrupted") void ctx.resume().catch(() => undefined);
@@ -87,12 +86,22 @@ export class AudioPipeline {
     if (ctx.state === "suspended") await ctx.resume();
   }
 
-  /** Closes an event in progress (it is emitted as final) and waits for it. */
+  
   async flush(timeoutMs = 3000): Promise<void> {
     if (!this.worker) return;
     const done = new Promise<void>((resolve) => (this.flushWaiter = resolve));
     this.worker.postMessage({ type: "flush" } satisfies WorkerIn);
     await Promise.race([done, new Promise((r) => setTimeout(r, timeoutMs))]);
+  }
+
+  
+  startEnrolment(maxSeconds: number): void {
+    this.worker?.postMessage({ type: "enrol-start", maxSeconds } satisfies WorkerIn);
+  }
+
+  
+  stopEnrolment(): void {
+    this.worker?.postMessage({ type: "enrol-stop" } satisfies WorkerIn);
   }
 
   async stop(): Promise<void> {
@@ -109,8 +118,8 @@ export class AudioPipeline {
 
   private handle(msg: WorkerOut): void {
     if (msg.type === "started") {
-      // Map the audio clock to wall-clock time once: sample 0 was captured at msg.contextTime.
-      // (getOutputTimestamp() reports 0/0 until audio output has started, so it is only used when valid.)
+      
+      
       const ctx = this.ctx!;
       const ts = ctx.getOutputTimestamp();
       const valid = (ts.performanceTime ?? 0) > 0 && (ts.contextTime ?? 0) > 0;

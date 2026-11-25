@@ -52,4 +52,76 @@ Status: plan + stage log (started 24 Nov 2026). Builds on the standalone archite
 
 ## 5. Stage log
 
-(filled in as stages complete - measured results only)
+### Stage 1 - CAM++ voice embedding, enrolment and comparison (AI side) - done 24 Nov 2026
+
+Code: `ai-service/app/services/speaker_service.py` (sherpa-onnx 2.0.3, model
+`3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx`, SHA-256 `98daf9bc...88bb5`, 512-dim, CPU, loaded once).
+Evaluation: `ai-service/evaluation/speaker_verification.py` on **LibriSpeech test-clean** (MD5 `32fa31d2...49a9`,
+40 real speakers). Results: `ai-service/evaluation/results/speaker_verification.json` (+ raw scores `.npz`).
+
+Measured on the development machine (CPU, 2 threads):
+
+| Item | Value |
+|---|---|
+| model load | 0.53 s, +68 MB working set |
+| embedding time (median) | 16.8 ms per 1.5 s, 28.3 ms per 3 s, 43.9 ms per 5 s segment (~0.009 s per audio second) |
+| process with VAD + CAM++ loaded | ~330 MB working set |
+
+**Threshold selection (calibration speakers only, 20 of 40):** `different` = lowest 1st percentile of genuine
+scores over all length x condition cells (= **0.3188**, from degraded 1.5 s); `same` = highest 99th percentile of
+same-gender impostor scores (= **0.4028**). At 1.5 s genuine and impostor ranges overlapped on the calibration
+speakers (genuine p1 0.32-0.35 vs same-gender impostor p99 0.37-0.40); from 3 s they did not (0.44-0.53 vs <= 0.40).
+Rule therefore: **LIKELY_NON_CANDIDATE only for regions >= 3 s**; shorter regions are LIKELY_CANDIDATE or UNCERTAIN.
+Similarities are raw cosine scores, **not probabilities**.
+
+**Held-out evaluation (the other 20 speakers; thresholds unchanged).** `degraded` = level -12 dB + white noise at
+15 dB SNR. Each cell: 200 genuine trials, 3 800 impostor trials.
+
+| Cell | Own voice -> NON_CANDIDATE (false) | Own voice -> UNCERTAIN | Other voice -> CANDIDATE (missed) | Other voice -> NON_CANDIDATE (detected) |
+|---|---|---|---|---|
+| clean 1.5 s | 0.000 | 0.010 | 0.0045 | 0.000 (abstains: too short) |
+| clean 3 s | 0.000 | 0.000 | 0.0084 | 0.963 |
+| clean 5 s | 0.000 | 0.000 | 0.0089 | 0.958 |
+| degraded 1.5 s | 0.000 | 0.070 | 0.0042 | 0.000 (abstains: too short) |
+| degraded 3 s | 0.000 | 0.020 | 0.0079 | 0.961 |
+| degraded 5 s | 0.000 | 0.000 | 0.0074 | 0.955 |
+
+0 of 1 200 genuine segments were called non-candidate (95 % upper bound ~0.25 % pooled, ~1.8 % per 200-trial cell).
+Same-gender impostors are harder: 0.9-1.9 % called LIKELY_CANDIDATE.
+
+**Enrolment checks:** all 40 single-speaker samples accepted (self-consistency min 0.815, median 0.890); 19 of 20
+two-voice samples (half speaker A, half speaker B) were *not* accepted (flagged as more than one voice).
+The first version of the enrolment check (similarity to the averaged reference) could not detect a two-voice sample
+at all; it was replaced by a pairwise window check before these numbers were produced.
+
+**Limits:** LibriSpeech is clean audiobook speech recorded per speaker; laptop microphones, rooms, Bluetooth codecs
+and emotional/whispered speech are harder. These thresholds are a starting point to be re-checked on the project's
+own consented recordings.
+
+### Stage 2 - enrolment flow, contracts 1.1, observations end to end - done 24 Nov 2026
+
+| Service | Change |
+|---|---|
+| Contracts | metadata `eventType`/`trigger.type` += `enrolment`; message `speakerReference`; result 1.1 `enrolment`, `speaker`, `observations[]` (all optional; the 12 existing examples still validate) |
+| AI | `processing_pipeline.py`: enrolment events -> CAM++ reference; speech events -> per-region comparison; `detection_rules.py`: `NON_CANDIDATE_VOICE` (region >= 3 s, LIKELY_NON_CANDIDATE) and `MULTIPLE_SPEAKERS` (a LIKELY_CANDIDATE and a LIKELY_NON_CANDIDATE region in one clip); confidence = `model-score`; health reports `speakerModel` |
+| Backend | tables `session_voiceprints`, `observations` (migration `AddObservationsAndVoiceprints`); ingestion moves the embedding out of the stored result; publisher adds the accepted reference to speech events of the same session; `GET .../enrolment`, `GET .../observations`; voiceprint retention `VOICEPRINT_RETENTION_HOURS` (24 h) |
+| Frontend | voice-sample panel (read a passage, 8-25 s, the sample never becomes a speech event); observations with type, time, duration, confidence kind, evidence and model on each event; voice-check line; wording "speech event received" / "AI processing" / "AI processing failure" |
+
+**Tests (all run 24 Nov 2026):** AI 104 + 9 real-model; backend 274 (155 unit incl. 12 new, 119 integration incl. 2
+new over real Redis); frontend 42 (6 new); browser E2E 22/22 against the updated services.
+
+**Real-model end-to-end check** (`ai-service/evaluation/e2e_speaker_flow.py`: HTTP -> Redis -> AI with CAM++ -> HTTP,
+LibriSpeech evaluation-split speakers 1188 (enrolled) and 1320, both male):
+
+| Clip | Result | Expected |
+|---|---|---|
+| voice sample, 15 s audio | accepted, 9.6 s speech, 1.0 s to process; embedding not returned over HTTP | accepted |
+| speaker A, 5 s | similarity 0.868 -> LIKELY_CANDIDATE; no observation; 115 ms AI time | no observation |
+| speaker B, 5 s | similarity 0.069 -> NON_CANDIDATE_VOICE; 96 ms AI time | NON_CANDIDATE_VOICE |
+| A 4 s + pause 1 s + B 4 s | B: 0.138 -> NON_CANDIDATE_VOICE; A's speech was split by its own pauses into 1.44 s and 1.12 s regions (< 1.5 s minimum) -> UNCERTAIN; **no MULTIPLE_SPEAKERS** | MULTIPLE_SPEAKERS + NON_CANDIDATE_VOICE |
+
+**Known limitation found:** without diarization, regions are formed from VAD segments (gaps < 0.5 s merged). Natural
+pauses can cut a speaker's turn into pieces shorter than the 1.5 s needed for a comparison, so the candidate's voice
+is not confirmed and MULTIPLE_SPEAKERS (which needs positive evidence of both voices) is not raised. The system
+abstains rather than guessing. Fix: speaker turns from diarization (Stage 3), evaluated on labelled mixtures - the
+merge gap was deliberately **not** tuned to make this single clip pass.

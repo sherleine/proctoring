@@ -1,10 +1,4 @@
-/**
- * Silero VAD (v5/v6 ONNX) inference via ONNX Runtime Web.
- *
- * Model contract: input [1, 64 + 512] float32 (64 samples of context from the
- * previous frame + the 512-sample frame at 16 kHz), state [2, 1, 128], sr int64.
- * Outputs: output [1, 1] speech probability, stateN [2, 1, 128].
- */
+
 import type * as OrtNs from "onnxruntime-web";
 
 type Ort = typeof OrtNs;
@@ -34,7 +28,7 @@ export class SileroVad {
     return new SileroVad(ort, session, sr);
   }
 
-  /** Speech probability (0..1) for one 512-sample frame. Frames must be fed in order. */
+  
   async process(frame: Float32Array): Promise<number> {
     if (frame.length !== SILERO_FRAME_SAMPLES) throw new Error(`VAD expects ${SILERO_FRAME_SAMPLES}-sample frames`);
     this.input.set(this.context, 0);

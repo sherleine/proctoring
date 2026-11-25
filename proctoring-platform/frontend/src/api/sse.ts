@@ -1,6 +1,4 @@
-// Live updates from GET /api/v1/sessions/{id}/updates (Server-Sent Events, http-api.v1.md "Real-time updates").
-// The browser's EventSource cannot send an Authorization header, so the stream is read with fetch().
-// Reconnects resume with Last-Event-ID; after repeated failures the caller is asked to poll GET /events.
+
 import type { ApiClient } from "./client";
 import { ApiError } from "./client";
 import type { EventStatusResponse } from "../types/contracts";
@@ -11,7 +9,7 @@ export interface SseMessage {
   data: string;
 }
 
-/** Incremental text/event-stream parser (chunks may split lines anywhere). */
+
 export class SseParser {
   private buffer = "";
   private id: string | null = null;
@@ -134,7 +132,7 @@ export class UpdateStream {
     }
   }
 
-  /** Returns true when the server ended the stream for good ("end" event). */
+  
   private async read(body: ReadableStream<Uint8Array>, setRetry: (ms: number) => void): Promise<boolean> {
     const parser = new SseParser();
     const decoder = new TextDecoder();

@@ -1,5 +1,4 @@
-// HTTP client for the backend (docs/contracts/http-api.v1.md). The session token is sent only in the
-// Authorization header and never logged.
+
 import type { EventStatusResponse, Problem, Session } from "../types/contracts";
 
 export class ApiError extends Error {
@@ -11,7 +10,7 @@ export class ApiError extends Error {
     super(message);
   }
 
-  /** Worth retrying later: network failure, timeout, rate limit or server-side error. */
+  
   get retryable(): boolean {
     return this.status === 0 || this.status === 408 || this.status === 429 || this.status >= 500;
   }
@@ -36,10 +35,10 @@ export class ApiClient {
     return this.json<Session>("POST", `/api/v1/sessions/${sessionId}/end`, token);
   }
 
-  /**
-   * Uploads one event (multipart: "metadata" JSON + "audio" WAV). 202 = new, 200 = same event again
-   * (idempotent retry), 503 = stored by the backend but not yet queued (it is queued automatically).
-   */
+  
+   
+   
+   
   async uploadEvent(sessionId: string, token: string, metadataJson: string, wav: Blob): Promise<{ status: number; event: EventStatusResponse }> {
     const form = new FormData();
     form.append("metadata", new Blob([metadataJson], { type: "application/json" }));
@@ -59,7 +58,7 @@ export class ApiClient {
     return (await this.json<{ items: EventStatusResponse[] }>("GET", `/api/v1/sessions/${sessionId}/events`, token)).items;
   }
 
-  /** Opens GET /updates (Server-Sent Events) - see sse.ts. */
+  
   openUpdates(sessionId: string, token: string, lastEventId: string | null, signal: AbortSignal): Promise<Response> {
     const headers: Record<string, string> = { Accept: "text/event-stream" };
     if (lastEventId !== null) headers["Last-Event-ID"] = lastEventId;

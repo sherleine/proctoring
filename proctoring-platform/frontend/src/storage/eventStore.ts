@@ -1,11 +1,12 @@
-// IndexedDB persistence of events in this browser: metadata, the WAV until it is uploaded, the local video
-// clip, upload state and the backend's status/result. No candidate personal data beyond the session id.
+
 import type { AnalysisResult, EventStatus } from "../types/contracts";
 
 export type UploadState = "pending" | "uploading" | "uploaded" | "retry-pending" | "failed";
 
 export interface LocalEvent {
   eventId: string;
+  
+  kind?: "speech" | "enrolment";
   sessionId: string;
   sequenceNumber: number;
   groupId: string;
@@ -15,9 +16,9 @@ export interface LocalEvent {
   endedAt: string;
   durationSeconds: number;
   speechSeconds: number;
-  /** Exact JSON sent as the "metadata" part; re-sent unchanged on retries (idempotent upload). */
+  
   metadataJson: string;
-  wav: Blob | null; // removed after a successful upload
+  wav: Blob | null; 
   wavBytes: number;
   video: Blob | null;
   videoMimeType: string | null;
@@ -26,7 +27,7 @@ export interface LocalEvent {
   uploadAttempts: number;
   nextAttemptAt: number;
   lastError: string | null;
-  status: EventStatus | null; // from the backend
+  status: EventStatus | null; 
   statusUpdatedAt: string | null;
   result: AnalysisResult | null;
   backendError: { code: string; message: string } | null;
@@ -59,7 +60,7 @@ export class EventStore {
     return this.tx("readonly", (s) => s.get(eventId)) as Promise<LocalEvent | undefined>;
   }
 
-  /** Applies a change to a stored event (no-op if it is gone). Returns the new value. */
+  
   async update(eventId: string, change: (e: LocalEvent) => Partial<LocalEvent>): Promise<LocalEvent | undefined> {
     const current = await this.get(eventId);
     if (!current) return undefined;
@@ -77,7 +78,7 @@ export class EventStore {
     return (await this.tx("readonly", (s) => s.getAll())) as LocalEvent[];
   }
 
-  /** Retention: deletes events created before `cutoffMs`. Returns how many were removed. */
+  
   async deleteOlderThan(cutoffMs: number): Promise<number> {
     const old = (await this.listAll()).filter((e) => e.createdAtMs < cutoffMs);
     for (const e of old) await this.tx("readwrite", (s) => s.delete(e.eventId));

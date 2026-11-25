@@ -1,4 +1,4 @@
-// Types of the backend's HTTP contract (docs/contracts/http-api.v1.md and the JSON Schemas).
+
 
 export interface RecordingPolicy {
   preEventSeconds: number;
@@ -9,10 +9,10 @@ export interface RecordingPolicy {
   maxUploadBytes: number;
 }
 
-/** session.v1.json */
+
 export interface Session {
   sessionId: string;
-  sessionToken?: string; // only in the create response
+  sessionToken?: string; 
   candidateId: string;
   examId: string;
   status: "active" | "ended";
@@ -39,8 +39,51 @@ export interface Finding {
   evidence: Record<string, unknown>;
 }
 
-/** analysis-result.v1.json (the parts the UI shows) */
+export type ObservationType =
+  | "MULTIPLE_SPEAKERS_DETECTED" | "OVERLAPPING_SPEECH_DETECTED" | "BACKGROUND_CONVERSATION_DETECTED"
+  | "NON_CANDIDATE_VOICE" | "POSSIBLE_EXTERNAL_ASSISTANCE" | "SPEECH_DETECTED" | "NO_SPEECH_DETECTED"
+  | "PHONE_RINGING" | "KEYBOARD_TYPING" | "WHISPERING" | "UNUSUAL_SOUND"
+  
+  | "MULTIPLE_SPEAKERS" | "OVERLAPPING_SPEECH" | "BACKGROUND_CONVERSATION";
+
+
+export interface Observation {
+  observationId: string;
+  sessionId: string;
+  eventId: string;
+  observationType: ObservationType;
+  startSeconds: number;
+  endSeconds: number;
+  confidence: number;
+  
+  confidenceKind: "model-score" | "calibrated-probability" | "rule";
+  supportingEvidence: Record<string, unknown>;
+  modelName: string;
+  modelVersion: string;
+  createdAt: string;
+  
+  category?: "informational" | "review";
+}
+
+
+export interface EnrolmentResult {
+  status: "accepted" | "uncertain" | "rejected";
+  reason: string | null;
+  speechSeconds: number;
+  embeddingModel: string;
+}
+
+export interface SpeakerComparison {
+  start: number;
+  end: number;
+  similarity: number | null;
+  decision: "LIKELY_CANDIDATE" | "LIKELY_NON_CANDIDATE" | "UNCERTAIN";
+  reason?: string | null;
+}
+
+
 export interface AnalysisResult {
+  schemaVersion?: "1.0" | "1.1";
   status: "completed" | "failed";
   processedAt: string;
   processingMs: number;
@@ -58,9 +101,13 @@ export interface AnalysisResult {
   diarization: { available: boolean; reason?: string | null };
   findings: Finding[];
   error: { code: string; message: string } | null;
+  
+  enrolment?: EnrolmentResult | null;
+  speaker?: { available: boolean; reason?: string | null; reference?: "present" | "missing"; comparisons?: SpeakerComparison[] };
+  observations?: Observation[];
 }
 
-/** event-status.v1.json */
+
 export interface EventStatusResponse {
   eventId: string;
   sessionId: string;
@@ -76,11 +123,11 @@ export interface EventStatusResponse {
   result: AnalysisResult | null;
 }
 
-/** audio-event-metadata.v1.json */
+
 export interface EventMetadata {
   schemaVersion: "1.0";
   eventId: string;
-  eventType: "speech";
+  eventType: "speech" | "enrolment";
   sequenceNumber: number;
   part: { groupId: string; index: number; isFinal: boolean; overlapSeconds: number };
   startedAt: string;
@@ -89,7 +136,7 @@ export interface EventMetadata {
   durationSeconds: number;
   preEventSeconds: number;
   trigger: {
-    type: "vad";
+    type: "vad" | "enrolment";
     model: string;
     startThreshold: number;
     endThreshold: number;
@@ -101,7 +148,7 @@ export interface EventMetadata {
   video: { recordedLocally: boolean; uploaded: false; format?: "webm"; codecs?: string; sizeBytes?: number };
 }
 
-/** RFC 7807 problem body returned by the backend for every error. */
+
 export interface Problem {
   type: string;
   title?: string;
@@ -109,5 +156,5 @@ export interface Problem {
   detail?: string;
   errors?: Record<string, string[]>;
   correlationId?: string;
-  event?: EventStatusResponse; // 503 on upload: stored, will be queued automatically
+  event?: EventStatusResponse; 
 }

@@ -1,10 +1,4 @@
-// Uploads stored events one at a time, oldest first, with retries.
-//
-//  * The exact stored metadata + WAV are re-sent on every attempt, so a retry of an upload that actually
-//    reached the backend is answered 200 "same event" instead of creating a duplicate.
-//  * Network errors, timeouts and 5xx are retried with exponential back-off; the WAV stays in IndexedDB.
-//  * 503 with an event body means the backend stored it and will queue it itself: that counts as uploaded.
-//  * Validation errors (4xx) are permanent: the event is marked failed and can be retried manually.
+
 import { ApiError, type ApiClient } from "../api/client";
 import type { EventStore, LocalEvent } from "../storage/eventStore";
 
@@ -38,14 +32,14 @@ export class UploadQueue {
     await this.kick();
   }
 
-  /** Manual retry of a failed event. */
+  
   async retry(eventId: string): Promise<void> {
     const e = await this.store.update(eventId, (x) => (x.upload === "uploaded" ? {} : { upload: "pending", nextAttemptAt: 0, lastError: null }));
     if (e) this.onChange(e);
     await this.kick();
   }
 
-  /** Processes every event that is due. Safe to call often; only one run at a time. */
+  
   async kick(): Promise<void> {
     if (this.stopped) return;
     if (this.busy) {

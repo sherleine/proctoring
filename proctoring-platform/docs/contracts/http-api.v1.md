@@ -149,6 +149,25 @@ Newest first (highest `sequenceNumber`, then latest receipt), at most 500 items.
 `eventId` must be a UUID; unknown IDs and other sessions' events are `404` (indistinguishable).
 ### `GET /api/v1/sessions/{sessionId}/events/{eventId}/result` → `200` [analysis-result.v1.json](schemas/analysis-result.v1.json), `404` until available.
 
+### Voice sample (contract 1.1)
+
+The candidate's voice sample is uploaded with the same route, with metadata `eventType: "enrolment"` and
+`trigger.type: "enrolment"`, 8-30 s long (speech events stay limited to `maxEventSeconds`). It never produces
+observations. Its result contains `enrolment.status` (`accepted` | `uncertain` | `rejected`) and a reason; the voice
+embedding is stored by the backend in `session_voiceprints` and is **removed** from the result before it is returned
+(`enrolment.embedding: null`, `embeddingStored: true`).
+
+### `GET /api/v1/sessions/{sessionId}/enrolment` → `200` (contract 1.1)
+`{ "status", "reason", "speechSeconds", "enrolmentEventId", "model", "usedForComparison", "updatedAt" }` - never the
+embedding. `404` until a voice sample was processed. Session token required.
+
+### `GET /api/v1/sessions/{sessionId}/observations` → `200` (contract 1.1)
+`{ "items": [ { "observationId", "sessionId", "eventId", "observationType", "startSeconds", "endSeconds",
+"startTimestamp", "endTimestamp", "durationSeconds", "confidence", "confidenceKind", "supportingEvidence",
+"modelName", "modelVersion", "createdAt" } ], "note" }`, oldest first. Potential observations for human review,
+never determinations of misconduct. `confidenceKind: "model-score"` means a transform of a model score, not a
+probability. Session token required.
+
 ### Event status lifecycle
 ```
 RECEIVED ──► QUEUED ──► PROCESSING ──► COMPLETED

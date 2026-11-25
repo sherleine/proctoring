@@ -61,14 +61,14 @@ uv python install 3.12
 
 # Virtual environment + dependencies (~1 GB, mostly PyTorch CPU)
 uv venv --python 3.12 --seed .venv
-.\.venv\Scripts\python -m pip install torch==2.15.0 torchaudio==2.11.1 --index-url https://download.pytorch.org/whl/cpu
-.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python -m pip install -r requirements.txt   # includes PyTorch CPU from PyTorch's own index
+.\.venv\Scripts\python scripts\fetch_models.py               # CAM++ speaker model (29.6 MB, SHA-256 checked)
 
 Copy-Item .env.example .env            # then adjust if needed
 ```
 
 Versions verified together (`pip check` clean): Python 3.12.16, torch 2.15.0+cpu, torchaudio 2.11.1+cpu,
-silero-vad 6.2.3, faster-whisper 1.2.1, ctranslate2 4.9.1, redis 8.1.0, fastapi 0.165.0, uvicorn 0.54.0,
+silero-vad 6.2.3, faster-whisper 1.2.1, ctranslate2 4.9.1, sherpa-onnx 2.0.3, redis 8.1.0, fastapi 0.165.0, uvicorn 0.54.0,
 pydantic 2.14.4, numpy 2.5.5, soundfile 0.14.0, jsonschema 4.26.0.
 
 ### Models

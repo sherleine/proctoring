@@ -4,7 +4,7 @@ import { ApiClient, ApiError } from "../api/client";
 import { UpdateStream, type StreamState } from "../api/sse";
 import { AudioPipeline, type PipelineEvent } from "../audio/audioPipeline";
 import { config } from "../config";
-import { buildEventRecord } from "../recording/eventMetadata";
+import { buildEnrolmentRecord, buildEventRecord } from "../recording/eventMetadata";
 import { backendChange } from "../recording/eventStatus";
 import { UploadQueue } from "../recording/uploadQueue";
 import { EventStore, type LocalEvent } from "../storage/eventStore";
@@ -36,9 +36,21 @@ export interface ExamState {
   /** Pipeline health, shown on the page (and on window.__proctoringDiag for automated checks). */
   diag: Diagnostics;
   events: LocalEvent[];
+  enrolment: EnrolmentState;
   errors: string[];
   notices: string[];
 }
+
+/** The candidate's voice sample. After upload its server status comes from the stored "enrolment" event. */
+export interface EnrolmentState {
+  phase: "none" | "recording" | "saving" | "saved" | "skipped";
+  seconds: number;
+  speechSeconds: number;
+}
+
+/** Longest voice sample (the backend accepts up to 30 s); the speech target is 10-20 s. */
+export const ENROLMENT_MAX_SECONDS = 25;
+export const ENROLMENT_MIN_SPEECH_SECONDS = 8;
 
 export interface Diagnostics {
   audioSeconds: number; // microphone audio analysed by the speech detector so far
@@ -87,6 +99,7 @@ const initial: ExamState = {
   phase: "idle", session: null, camera: "off", microphone: "off", vad: "off", level: { probability: 0, rmsDbfs: -100 },
   speaking: false, detectorState: "IDLE", currentEventStartedAt: null, stream: "off", tabHidden: false, events: [], errors: [], notices: [],
   micLabel: null, micDevices: [], micId: "", recent: { peakDbfs: -100, peakProbability: 0 }, diag: emptyDiag,
+  enrolment: { phase: "none", seconds: 0, speechSeconds: 0 },
 };
 
 export function useExam() {
@@ -139,7 +152,7 @@ export function useExam() {
   }, [patch]);
 
   const upsert = useCallback((event: LocalEvent) => {
-    if (event.upload === "uploaded" && !refs.current.uploadedIds.has(event.eventId)) {
+    if (event.kind !== "enrolment" && event.upload === "uploaded" && !refs.current.uploadedIds.has(event.eventId)) {
       refs.current.uploadedIds.add(event.eventId);
       setDiag({ uploaded: refs.current.uploadedIds.size });
     }
@@ -228,6 +241,26 @@ export function useExam() {
         level: { probability: msg.probability, rmsDbfs: msg.rmsDbfs }, speaking: msg.speaking, detectorState: msg.state,
         recent: { peakDbfs: Math.max(...r.levels.map((l) => l.db)), peakProbability: Math.max(...r.levels.map((l) => l.p)) },
       });
+    } else if (msg.type === "enrol-progress") {
+      setState((s) => ({ ...s, enrolment: { ...s.enrolment, seconds: msg.seconds, speechSeconds: msg.speechSeconds } }));
+    } else if (msg.type === "enrolment") {
+      setState((s) => ({ ...s, enrolment: { ...s.enrolment, phase: "saving", speechSeconds: msg.speechSeconds } }));
+      const session = r.session!.session;
+      const sequenceNumber = r.sequence++;
+      void (async () => {
+        try {
+          const record = await buildEnrolmentRecord({
+            wav: msg.wav, sessionId: session.sessionId, sequenceNumber, startMs: r.pipeline!.epochOfSample(msg.startSample),
+            speechSeconds: msg.speechSeconds, maxProbability: msg.maxProbability,
+            vad: { startThreshold: config.vad.startThreshold, endThreshold: config.vad.endThreshold, modelName: config.vad.modelName },
+          });
+          await r.queue!.enqueue(record);
+          setState((s) => ({ ...s, enrolment: { ...s.enrolment, phase: "saved" } }));
+        } catch (err) {
+          setState((s) => ({ ...s, enrolment: { ...s.enrolment, phase: "none" } }));
+          addError(`The voice sample could not be saved: ${(err as Error).message}`);
+        }
+      })();
     } else if (msg.type === "speech-start") {
       const clipStartMs = r.pipeline!.epochOfSample(msg.clipStartSample);
       r.videoHold = r.video?.beginClip(clipStartMs) ?? null;
@@ -439,6 +472,20 @@ export function useExam() {
     setState({ ...initial });
   }, []);
 
+  // ------------------------------------------------------------------ voice sample (enrolment)
+
+  const startEnrolment = useCallback(() => {
+    const pipeline = refs.current.pipeline;
+    if (!pipeline) return;
+    setState((s) => ({ ...s, enrolment: { phase: "recording", seconds: 0, speechSeconds: 0 } }));
+    pipeline.startEnrolment(ENROLMENT_MAX_SECONDS);
+  }, []);
+
+  const stopEnrolment = useCallback(() => refs.current.pipeline?.stopEnrolment(), []);
+
+  const skipEnrolment = useCallback(() =>
+    setState((s) => ({ ...s, enrolment: { ...s.enrolment, phase: "skipped" } })), []);
+
   const retryUpload = useCallback((eventId: string) => void refs.current.queue?.retry(eventId), []);
 
   useEffect(() => () => {
@@ -484,5 +531,6 @@ export function useExam() {
     return () => navigator.mediaDevices?.removeEventListener?.("devicechange", refreshDevices);
   }, [refreshDevices]);
 
-  return { state, start, end, newExam, retryUpload, selectMic, media: () => refs.current.media };
+  return { state, start, end, newExam, retryUpload, selectMic, startEnrolment, stopEnrolment, skipEnrolment,
+    media: () => refs.current.media };
 }

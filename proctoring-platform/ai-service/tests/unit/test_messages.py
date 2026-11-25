@@ -74,8 +74,9 @@ def test_completed_result_matches_analysis_result_schema():
         transcription=TranscriptionStage(available=True, language="en", languageProbability=0.9, text="hi"),
         findings=[Finding(type="CANDIDATE_SPEECH", severity="info", description="d", start=0.1, end=1.1, evidence={})])
     payload = result.to_payload()
-    assert payload["diarization"] == {"available": False, "reason": "Speaker diarization is not included in this version",
-                                      "speakerCount": None, "turns": [], "overlaps": []}
+    assert payload["diarization"] == {"available": False, "reason": "Speaker diarization was not run for this event",
+                                      "speakerCount": None, "turns": [], "overlaps": [], "speakers": [],
+                                      "distinctVoices": None}
     assert result.message_type == "audio.analysis.completed"
 
 

@@ -45,6 +45,10 @@ public sealed class AudioEventOptions
     [Range(1024, 1_048_576)] public int MaxMetadataBytes { get; set; } = 16 * 1024;
     [Range(1, 10_000)] public int ListLimit { get; set; } = 500;
 
+    /// <summary>VOICEPRINT_RETENTION_HOURS: the session's candidate voice reference is deleted this long after its last update.</summary>
+    [Range(0.01, 8760)] public double VoiceprintRetentionHours { get; set; } = 24;
+
     public TimeSpan ClockSkew => TimeSpan.FromSeconds(ClockSkewSeconds);
+    public TimeSpan VoiceprintRetention => TimeSpan.FromHours(VoiceprintRetentionHours);
     public TimeSpan AudioRetention => TimeSpan.FromHours(AudioRetentionHours);
 }

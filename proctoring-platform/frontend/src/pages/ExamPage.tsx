@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { EnrolmentPanel } from "../components/EnrolmentPanel";
 import { EventList } from "../components/EventList";
 import { MicActivity, StatusBar } from "../components/StatusBar";
 import { WebcamPreview } from "../components/WebcamPreview";
@@ -6,7 +7,7 @@ import { useExam } from "../hooks/useExam";
 import { describe } from "../recording/eventStatus";
 
 export function ExamPage() {
-  const { state, start, end, newExam, retryUpload, selectMic, media } = useExam();
+  const { state, start, end, newExam, retryUpload, selectMic, startEnrolment, stopEnrolment, skipEnrolment, media } = useExam();
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -14,7 +15,9 @@ export function ExamPage() {
   }, []);
 
   const running = state.phase === "running";
-  const lastEvent = state.events.length > 0 ? state.events[state.events.length - 1] : null;
+  const speechEvents = state.events.filter((e) => e.kind !== "enrolment");
+  const voiceSample = state.events.filter((e) => e.kind === "enrolment").at(-1) ?? null;
+  const lastEvent = speechEvents.length > 0 ? speechEvents[speechEvents.length - 1] : null;
 
   return (
     <main>
@@ -50,6 +53,11 @@ export function ExamPage() {
       {state.phase === "interrupted" && <p className="notice">The exam was interrupted (page reload or device problem). Recorded clips are kept and uploaded; resume to continue monitoring.</p>}
       {state.phase === "ended" && <p className="notice">The exam has ended. Results of the last clips may still arrive below.</p>}
 
+      {(running || voiceSample) && (
+        <EnrolmentPanel enrolment={state.enrolment} sample={voiceSample} running={running}
+          onStart={startEnrolment} onStop={stopEnrolment} onSkip={skipEnrolment} />
+      )}
+
       <StatusBar state={state} />
       <div className="live">
         <WebcamPreview stream={media()} active={running && state.camera === "on"} />
@@ -66,7 +74,7 @@ export function ExamPage() {
 
       <section>
         <h2>Events</h2>
-        <EventList events={state.events} now={now} onRetry={retryUpload} />
+        <EventList events={speechEvents} now={now} onRetry={retryUpload} />
       </section>
     </main>
   );

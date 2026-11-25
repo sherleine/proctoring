@@ -15,7 +15,7 @@ from app.utils.time_utils import utc_now_iso
 log = logging.getLogger(__name__)
 PROCESSED_TTL_SECONDS = 7 * 24 * 3600
 
-# Errors that mean "Redis is not reachable right now" - the worker backs off and retries.
+
 UNAVAILABLE = (redis.ConnectionError, redis.TimeoutError)
 
 
@@ -28,7 +28,7 @@ class RedisStreams:
                 host=host or "localhost", port=int(port or 6379),
                 password=settings.redis_password.get_secret_value() if settings.redis_password else None,
                 decode_responses=True, socket_connect_timeout=3, socket_timeout=10, health_check_interval=30,
-                # One quick retry per command; longer outages are handled by the worker loop's back-off.
+                
                 retry=Retry(ExponentialBackoff(cap=1.0, base=0.2), retries=1))
         self.client = client
 
@@ -77,8 +77,8 @@ class RedisStreams:
                       "dlq.consumerGroup": self.s.consumer_group, "dlq.failedAt": utc_now_iso()})
         self.client.xadd(self.s.dlq_stream, entry, maxlen=self.s.stream_max_length or None, approximate=True)
 
-    # Idempotency: remember (sessionId, eventId) pairs whose final result was published, so a duplicate
-    # delivery (backend re-publish, redelivery after a crash) is acknowledged without analysing again.
+    
+    
     def _processed_key(self, session_id: str, event_id: str) -> str:
         return f"{self.s.events_stream}:processed:{self.s.consumer_group}:{session_id}:{event_id}"
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { describe } from "../recording/eventStatus";
 import type { LocalEvent } from "../storage/eventStore";
 import { formatClock } from "../utils/time";
+import { ObservationList } from "./ObservationList";
 
 function useObjectUrl(blob: Blob | null): string | null {
   const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
@@ -30,6 +31,7 @@ function EventRow({ event, now, onRetry }: { event: LocalEvent; now: number; onR
         {event.video && <button className="link" onClick={() => setShowVideo((v) => !v)}>{showVideo ? "Hide video" : "Show video"}</button>}
       </div>
       {videoUrl && <video className="clip" src={videoUrl} controls />}
+      <ObservationList result={event.result} eventStartedAt={event.startedAt} />
       {transcript?.available && transcript.text && <blockquote className="transcript">“{transcript.text}”</blockquote>}
     </li>
   );

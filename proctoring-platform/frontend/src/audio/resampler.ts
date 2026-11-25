@@ -1,14 +1,6 @@
-/**
- * Streaming windowed-sinc resampler (band-limited), used inside the AudioWorklet
- * to convert the microphone's native rate (usually 48 kHz or 44.1 kHz) to 16 kHz.
- *
- * Linear interpolation or plain decimation would alias energy above 8 kHz into
- * the speech band; the low-pass sinc kernel removes it before resampling.
- * Works for non-integer ratios (44.1k -> 16k) and keeps state across calls so
- * chunk boundaries do not produce clicks.
- */
 
-const TABLE_RESOLUTION = 128; // kernel samples per input sample
+
+const TABLE_RESOLUTION = 128; 
 
 export class StreamingResampler {
   readonly inputRate: number;
@@ -18,8 +10,8 @@ export class StreamingResampler {
   private readonly table: Float32Array;
   private buf: Float32Array;
   private bufLen = 0;
-  private bufStart = 0; // absolute input index of buf[0]
-  private nextOut = 0; // absolute (fractional) input position of the next output sample
+  private bufStart = 0; 
+  private nextOut = 0; 
   private out: Float32Array;
 
   constructor(inputRate: number, outputRate: number, zeroCrossings = 8) {
@@ -27,7 +19,7 @@ export class StreamingResampler {
     this.inputRate = inputRate;
     this.outputRate = outputRate;
     this.ratio = inputRate / outputRate;
-    // Cutoff in cycles per input sample, slightly below Nyquist of the lower rate.
+    
     const cutoff = 0.5 * Math.min(1, outputRate / inputRate) * 0.92;
     this.halfWidth = Math.ceil(zeroCrossings / (2 * cutoff));
     const n = this.halfWidth * TABLE_RESOLUTION;
@@ -36,7 +28,7 @@ export class StreamingResampler {
       const x = i / TABLE_RESOLUTION;
       const arg = 2 * cutoff * x;
       const sinc = x === 0 ? 1 : Math.sin(Math.PI * arg) / (Math.PI * arg);
-      // Blackman window
+      
       const w = 0.42 + 0.5 * Math.cos((Math.PI * x) / this.halfWidth) + 0.08 * Math.cos((2 * Math.PI * x) / this.halfWidth);
       this.table[i + n] = 2 * cutoff * sinc * w;
     }
@@ -48,7 +40,7 @@ export class StreamingResampler {
     return this.inputRate === this.outputRate;
   }
 
-  /** Returns resampled samples. The returned view is only valid until the next call. */
+ 
   process(input: Float32Array): Float32Array {
     if (this.passthrough) return input;
     this.append(input);
@@ -70,13 +62,13 @@ export class StreamingResampler {
         const w = this.table[Math.round((k - center) * TABLE_RESOLUTION) + n];
         wsum += w;
         const idx = k - this.bufStart;
-        if (idx >= 0) acc += this.buf[idx] * w; // k < 0 only during warm-up: treat as silence
+        if (idx >= 0) acc += this.buf[idx] * w; 
       }
       this.out[count++] = wsum !== 0 ? acc / wsum : 0;
       this.nextOut += this.ratio;
     }
 
-    // Drop input samples that no future output needs.
+    
     const keepFrom = Math.floor(this.nextOut - hw);
     const drop = keepFrom - this.bufStart;
     if (drop > 0) {

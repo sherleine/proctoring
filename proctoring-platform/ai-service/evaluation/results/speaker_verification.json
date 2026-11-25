@@ -1,0 +1,534 @@
+{
+  "thresholds": {
+    "same": 0.4028,
+    "different": 0.3188,
+    "note": {
+      "targetP1PerCell": {
+        "clean/1.5s": 0.3528,
+        "clean/3.0s": 0.4591,
+        "clean/5.0s": 0.5342,
+        "degraded/1.5s": 0.3188,
+        "degraded/3.0s": 0.4386,
+        "degraded/5.0s": 0.5123
+      },
+      "sameGenderNonTargetP99PerCell": {
+        "clean/1.5s": 0.3782,
+        "clean/3.0s": 0.3889,
+        "clean/5.0s": 0.3976,
+        "degraded/1.5s": 0.3716,
+        "degraded/3.0s": 0.3916,
+        "degraded/5.0s": 0.4028
+      }
+    }
+  },
+  "speakers": {
+    "calibration": 20,
+    "evaluation": 20
+  },
+  "enrolments": {
+    "1089": {
+      "status": "accepted",
+      "speech": 18.164,
+      "consistency": 0.89
+    },
+    "1188": {
+      "status": "accepted",
+      "speech": 13.184,
+      "consistency": 0.926
+    },
+    "121": {
+      "status": "accepted",
+      "speech": 14.664,
+      "consistency": 0.868
+    },
+    "1221": {
+      "status": "accepted",
+      "speech": 28.024,
+      "consistency": 0.868
+    },
+    "1284": {
+      "status": "accepted",
+      "speech": 15.165,
+      "consistency": 0.885
+    },
+    "1320": {
+      "status": "accepted",
+      "speech": 21.56,
+      "consistency": 0.905
+    },
+    "1580": {
+      "status": "accepted",
+      "speech": 17.592,
+      "consistency": 0.891
+    },
+    "1995": {
+      "status": "accepted",
+      "speech": 18.169,
+      "consistency": 0.881
+    },
+    "2094": {
+      "status": "accepted",
+      "speech": 19.276,
+      "consistency": 0.897
+    },
+    "2300": {
+      "status": "accepted",
+      "speech": 18.068,
+      "consistency": 0.887
+    },
+    "237": {
+      "status": "accepted",
+      "speech": 23.736,
+      "consistency": 0.902
+    },
+    "260": {
+      "status": "accepted",
+      "speech": 15.753,
+      "consistency": 0.863
+    },
+    "2830": {
+      "status": "accepted",
+      "speech": 18.728,
+      "consistency": 0.884
+    },
+    "2961": {
+      "status": "accepted",
+      "speech": 23.748,
+      "consistency": 0.88
+    },
+    "3570": {
+      "status": "accepted",
+      "speech": 16.538,
+      "consistency": 0.891
+    },
+    "3575": {
+      "status": "accepted",
+      "speech": 17.932,
+      "consistency": 0.893
+    },
+    "3729": {
+      "status": "accepted",
+      "speech": 21.556,
+      "consistency": 0.815
+    },
+    "4077": {
+      "status": "accepted",
+      "speech": 16.012,
+      "consistency": 0.896
+    },
+    "4446": {
+      "status": "accepted",
+      "speech": 14.092,
+      "consistency": 0.865
+    },
+    "4507": {
+      "status": "accepted",
+      "speech": 12.704,
+      "consistency": 0.89
+    },
+    "4970": {
+      "status": "accepted",
+      "speech": 21.38,
+      "consistency": 0.863
+    },
+    "4992": {
+      "status": "accepted",
+      "speech": 14.578,
+      "consistency": 0.893
+    },
+    "5105": {
+      "status": "accepted",
+      "speech": 15.739,
+      "consistency": 0.896
+    },
+    "5142": {
+      "status": "accepted",
+      "speech": 14.602,
+      "consistency": 0.868
+    },
+    "5639": {
+      "status": "accepted",
+      "speech": 14.028,
+      "consistency": 0.904
+    },
+    "5683": {
+      "status": "accepted",
+      "speech": 14.112,
+      "consistency": 0.869
+    },
+    "61": {
+      "status": "accepted",
+      "speech": 14.478,
+      "consistency": 0.853
+    },
+    "672": {
+      "status": "accepted",
+      "speech": 14.764,
+      "consistency": 0.908
+    },
+    "6829": {
+      "status": "accepted",
+      "speech": 20.3,
+      "consistency": 0.889
+    },
+    "6930": {
+      "status": "accepted",
+      "speech": 17.152,
+      "consistency": 0.886
+    },
+    "7021": {
+      "status": "accepted",
+      "speech": 14.576,
+      "consistency": 0.882
+    },
+    "7127": {
+      "status": "accepted",
+      "speech": 18.281,
+      "consistency": 0.911
+    },
+    "7176": {
+      "status": "accepted",
+      "speech": 21.332,
+      "consistency": 0.877
+    },
+    "7729": {
+      "status": "accepted",
+      "speech": 13.328,
+      "consistency": 0.92
+    },
+    "8224": {
+      "status": "accepted",
+      "speech": 15.152,
+      "consistency": 0.908
+    },
+    "8230": {
+      "status": "accepted",
+      "speech": 24.863,
+      "consistency": 0.912
+    },
+    "8455": {
+      "status": "accepted",
+      "speech": 21.924,
+      "consistency": 0.869
+    },
+    "8463": {
+      "status": "accepted",
+      "speech": 20.005,
+      "consistency": 0.898
+    },
+    "8555": {
+      "status": "accepted",
+      "speech": 16.925,
+      "consistency": 0.855
+    },
+    "908": {
+      "status": "accepted",
+      "speech": 13.443,
+      "consistency": 0.899
+    }
+  },
+  "evaluation": {
+    "clean/1.5s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 0.99,
+        "uncertain": 0.01,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0045,
+        "uncertain": 0.02,
+        "likelyNonCandidate": 0.9755
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0093,
+        "uncertain": 0.039,
+        "likelyNonCandidate": 0.9516
+      }
+    },
+    "clean/3.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0084,
+        "uncertain": 0.0287,
+        "likelyNonCandidate": 0.9629
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0176,
+        "uncertain": 0.0566,
+        "likelyNonCandidate": 0.9258
+      }
+    },
+    "clean/5.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0089,
+        "uncertain": 0.0332,
+        "likelyNonCandidate": 0.9579
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0187,
+        "uncertain": 0.0632,
+        "likelyNonCandidate": 0.9181
+      }
+    },
+    "degraded/1.5s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 0.93,
+        "uncertain": 0.05,
+        "likelyNonCandidate": 0.02
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0042,
+        "uncertain": 0.0239,
+        "likelyNonCandidate": 0.9718
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0088,
+        "uncertain": 0.0484,
+        "likelyNonCandidate": 0.9429
+      }
+    },
+    "degraded/3.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 0.98,
+        "uncertain": 0.02,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0079,
+        "uncertain": 0.0311,
+        "likelyNonCandidate": 0.9611
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0165,
+        "uncertain": 0.0615,
+        "likelyNonCandidate": 0.922
+      }
+    },
+    "degraded/5.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0074,
+        "uncertain": 0.0379,
+        "likelyNonCandidate": 0.9547
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0154,
+        "uncertain": 0.0742,
+        "likelyNonCandidate": 0.9104
+      }
+    }
+  },
+  "calibration": {
+    "clean/1.5s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 0.965,
+        "uncertain": 0.035,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0021,
+        "uncertain": 0.0174,
+        "likelyNonCandidate": 0.9805
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0044,
+        "uncertain": 0.028,
+        "likelyNonCandidate": 0.9676
+      }
+    },
+    "clean/3.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0029,
+        "uncertain": 0.0232,
+        "likelyNonCandidate": 0.9739
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.006,
+        "uncertain": 0.0407,
+        "likelyNonCandidate": 0.9533
+      }
+    },
+    "clean/5.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0042,
+        "uncertain": 0.0276,
+        "likelyNonCandidate": 0.9682
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0088,
+        "uncertain": 0.05,
+        "likelyNonCandidate": 0.9412
+      }
+    },
+    "degraded/1.5s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 0.91,
+        "uncertain": 0.08,
+        "likelyNonCandidate": 0.01
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0026,
+        "uncertain": 0.0171,
+        "likelyNonCandidate": 0.9803
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0055,
+        "uncertain": 0.0335,
+        "likelyNonCandidate": 0.961
+      }
+    },
+    "degraded/3.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.0039,
+        "uncertain": 0.0297,
+        "likelyNonCandidate": 0.9663
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0077,
+        "uncertain": 0.0588,
+        "likelyNonCandidate": 0.9335
+      }
+    },
+    "degraded/5.0s": {
+      "target": {
+        "n": 200,
+        "likelyCandidate": 1.0,
+        "uncertain": 0.0,
+        "likelyNonCandidate": 0.0
+      },
+      "nonTarget": {
+        "n": 3800,
+        "likelyCandidate": 0.005,
+        "uncertain": 0.0379,
+        "likelyNonCandidate": 0.9571
+      },
+      "nonTargetSameGender": {
+        "n": 1820,
+        "likelyCandidate": 0.0104,
+        "uncertain": 0.072,
+        "likelyNonCandidate": 0.9176
+      }
+    }
+  },
+  "timing": {
+    "1.5s": {
+      "medianMs": 16.81,
+      "n": 800
+    },
+    "3.0s": {
+      "medianMs": 28.33,
+      "n": 800
+    },
+    "5.0s": {
+      "medianMs": 43.91,
+      "n": 800
+    },
+    "totalSeconds": 198.0
+  },
+  "enrolmentWithCalibratedThresholds": {
+    "accepted": 40,
+    "uncertain": {},
+    "rejected": {},
+    "consistency": {
+      "min": 0.8148,
+      "median": 0.8896
+    }
+  },
+  "twoVoiceEnrolments": {
+    "n": 20,
+    "notAccepted": 19,
+    "statuses": {
+      "1089+1188": "uncertain",
+      "121+1221": "uncertain",
+      "1284+1320": "uncertain",
+      "1580+1995": "uncertain",
+      "2094+2300": "uncertain",
+      "237+260": "uncertain",
+      "2830+2961": "uncertain",
+      "3570+3575": "uncertain",
+      "3729+4077": "uncertain",
+      "4446+4507": "uncertain",
+      "4970+4992": "uncertain",
+      "5105+5142": "uncertain",
+      "5639+5683": "uncertain",
+      "61+672": "uncertain",
+      "6829+6930": "uncertain",
+      "7021+7127": "uncertain",
+      "7176+7729": "accepted",
+      "8224+8230": "uncertain",
+      "8455+8463": "uncertain",
+      "8555+908": "uncertain"
+    }
+  },
+  "scoreSummary": {
+    "calibrationTarget": {
+      "p1": 0.3528,
+      "median": 0.6936
+    },
+    "calibrationNonTarget": {
+      "p99": 0.3648,
+      "median": 0.1136
+    }
+  }
+}
