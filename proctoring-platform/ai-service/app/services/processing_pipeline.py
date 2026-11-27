@@ -1,15 +1,4 @@
-"""One event in, one contract result out - no Redis, no HTTP, so it can be tested and debugged on its own.
 
-    read WAV (store) -> validate/decode -> levels + quiet-audio gain -> Silero VAD
-    -> pyannote segmentation (speaker turns, overlap; only with enough speech)
-    -> CAM++ voice embedding per diarized speaker, compared between the speakers of the clip
-    -> faster-whisper (optional: only when enabled and speech was verified)
-    -> rule-based findings (v1) + observations (detection_rules)
-    -> AnalysisResult (schema-checked)
-
-Errors: PermanentEventError (bad/missing audio) and TransientEventError (model failure) propagate to the
-worker, which turns them into a failed result or a retry. Nothing is ever filled in with guessed values.
-"""
 import logging
 import time
 
@@ -174,16 +163,23 @@ class ProcessingPipeline:
         a reviewer, the same way an unavailable transcription/diarization stage reports why."""
         if not self.escalation_enabled or self.llm is None:
             return {"attempted": False, "reason": "Tier 2 escalation is disabled (ESCALATION_ENABLED=false)"}
-        if diarization is None or transcription is None:
-            return {"attempted": False, "reason": "No diarized speech with a transcript to review for this clip"}
-        role_by_label = {s["speaker"]: s.get("role", "uncertain") for s in diarization_stage.speakers}
-        tagged = llm_review_service.tag_transcript(transcription.segments, diarization.turns, role_by_label)
+        if transcription is None:
+            return {"attempted": False, "reason": "No speech verified in this clip, so there is no transcript to review"}
+        if diarization is not None:
+            role_by_label = {s["speaker"]: s.get("role", "uncertain") for s in diarization_stage.speakers}
+            tagged = llm_review_service.tag_transcript(transcription.segments, diarization.turns, role_by_label)
+            diarization_summary = {"speakerCount": diarization.speaker_count,
+                                   "overlapSeconds": diarization.overlap_seconds,
+                                   "distinctVoices": diarization_stage.distinctVoices}
+        else:
+            # Too little speech to separate speakers (or diarization off): still reviewed, but every line is
+            # "uncertain" - never guessed into "main" - and the LLM is told why.
+            tagged = llm_review_service.tag_transcript(transcription.segments, [], {})
+            diarization_summary = {"speakerCount": None, "overlapSeconds": None, "distinctVoices": None,
+                                   "notDiarized": diarization_stage.reason}
         question = question_override if question_override is not None else self.question_provider.get(
             session_id=message.sessionId, exam_id=message.examId,
             start_at=message.event.get("startedAt", ""), end_at=message.event.get("endedAt", ""))
-        diarization_summary = {"speakerCount": diarization.speaker_count,
-                               "overlapSeconds": diarization.overlap_seconds,
-                               "distinctVoices": diarization_stage.distinctVoices}
         return llm_review_service.review_clip(
             tagged_segments=tagged, question=question, observation_types=[o["observationType"] for o in observations],
             diarization_summary=diarization_summary, similarity=self.similarity, llm=self.llm)

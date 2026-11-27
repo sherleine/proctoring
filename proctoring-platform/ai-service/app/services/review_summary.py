@@ -1,12 +1,4 @@
-"""Turns the full AnalysisResult payload into the single valid/invalid + reason verdict someone skimming a
-demo (or a future reviewer dashboard) actually wants, without reading observations/aiReview by hand.
 
-This is a convenience derived from the contract, not part of it: the full payload (observations, aiReview,
-findings, ...) stays the source of truth and is always returned alongside this - nothing here is persisted
-or sent to the backend. "valid" never means "cleared of all suspicion"; it means "nothing here needs a human
-to look closer right now". Never silently clears a Tier 1 review-category flag: when Tier 2 couldn't run or
-couldn't decide, this stays on the cautious side (invalid) rather than guessing benign.
-"""
 
 CLEARED_CLASSIFICATIONS = frozenset({"likely_reading_question", "likely_benign_other"})
 

@@ -1,12 +1,4 @@
-"""Reads an event's WAV from the shared audio store and turns it into numbers.
 
-Safety rules:
-  * only `audioRef.key` is used (the backend's absolute `uri` is ignored); the key must match the backend's
-    storage-key pattern and the resolved path must stay inside AUDIO_STORE_PATH (no path traversal);
-  * size and SHA-256 must match the message, so the analysed audio is exactly what was uploaded;
-  * the file is opened read-only and never modified;
-  * paths never appear in errors or logs - only the key.
-"""
 import hashlib
 import io
 import re
@@ -26,7 +18,7 @@ MAX_BYTES = 50_000_000
 
 @dataclass(frozen=True)
 class LoadedAudio:
-    samples: np.ndarray  # float32, mono, [-1, 1], original timing (no resampling)
+    samples: np.ndarray  
     sample_rate: int
 
     @property

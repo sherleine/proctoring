@@ -1,14 +1,4 @@
-"""Voice embeddings with CAM++ (used to tell whether two diarized speakers have different voices).
 
-Model: 3D-Speaker CAM++ trained on VoxCeleb (ModelScope `iic/speech_campplus_sv_en_voxceleb_16k`, weights
-Apache-2.0), as the ONNX export published by sherpa-onnx, run with sherpa-onnx (Apache-2.0) on the CPU.
-Loaded once and reused; calls are serialized.
-
-The service never identifies anybody: it only turns a stretch of one speaker's speech into a 512-value voice
-embedding. The pipeline compares embeddings of the speakers inside the same clip with each other (cosine
-similarity, thresholds SPEAKER_SAME_THRESHOLD / SPEAKER_DIFFERENT_THRESHOLD). Similarities are raw model scores,
-not probabilities.
-"""
 from __future__ import annotations
 
 import hashlib

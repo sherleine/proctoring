@@ -1,11 +1,4 @@
-"""Optional, cheap pre-filter: how closely a transcript segment resembles the active question/options.
 
-This is a triage signal only, attached to the AI review for the reviewer's benefit - it can lower an
-escalation's priority but must never suppress it outright (see llm_review_service.review_clip). Uses a small
-multilingual sentence-embedding model (intfloat/multilingual-e5-small, MIT license) so a transcript segment
-can be compared against a question that stayed in the candidate's own language, independent of whatever
-language Whisper's "translate" task happened to render the speech into.
-"""
 import logging
 
 import numpy as np

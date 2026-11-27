@@ -1,12 +1,4 @@
-"""Debug/demo endpoint: upload a single audio (or video) clip directly and get back the same AnalysisResult
-the Redis worker would have produced for it, plus a simple valid/invalid + reason verdict for a quick look.
 
-This is NOT how the real system works: in production, audio only ever arrives through the backend and Redis
-(see app/main.py's docstring) - there is no real "question context" or session continuity here either, each
-upload is reviewed on its own. This endpoint exists purely so the pipeline's output can be demoed/tested
-through Swagger without standing up the backend + Redis + a real exam session. Only registered when
-DEBUG_ANALYZE_ENDPOINT_ENABLED=true (see app/main.py).
-"""
 import hashlib
 import io
 import json

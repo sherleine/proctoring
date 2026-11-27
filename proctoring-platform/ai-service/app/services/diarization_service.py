@@ -1,30 +1,4 @@
-"""Speaker turns and overlapping speech inside one event clip (pyannote.audio 4.1.1, community-1, CPU).
 
-Why only the SEGMENTATION step of pyannote/speaker-diarization-community-1:
-the full pipeline ends with a clustering step that needs more speech per speaker than an event clip (<= 10 s)
-contains. In the Phase 2 probe (docs/history/results/phase2-pyannote-benchmark.md, LibriSpeech calibration speakers)
-the full pipeline found the second speaker of a turn-taking clip in 1/20 clips, while its segmentation model found it
-in 17/20, and overlap in 18-20/20. So this service uses the pipeline's segmentation output (up to 3 local speakers
-per 10 s window, with overlap); whether two speakers have different voices is checked with CAM++ embeddings.
-
-What it returns (all times in seconds inside the clip):
-  * speakers: anonymous local labels S1, S2, ... ordered by first appearance - NOT identities; the first speaker is
-    never assumed to be the candidate;
-  * turns: (start, end, speaker), gaps shorter than `merge_gap_seconds` inside a speaker's speech are closed
-    (natural pauses), pieces shorter than `min_turn_seconds` are dropped;
-  * overlaps: regions where >= 2 speakers are active for at least `min_overlap_seconds`;
-  * per speaker: total speech, exclusive (non-overlapping) speech and its level (for background-speech rules).
-A speaker counts only with >= `min_speaker_seconds` of speech. Clips longer than one 10 s window are analysed by
-pyannote in OVERLAPPING windows (10 s long, ~1 s apart), so one stretch of speech is seen by up to ~10 windows, each
-with its own local speaker indices. Those are stitched into clip-level speakers: two local speakers of different
-windows are the same speaker when their activity agrees on the time both windows cover (two local speakers of the
-same window are never merged). Overlap is judged inside each window (>= 2 of that window's own speakers active at
-once, in most windows covering the moment) - never by counting the same voice seen by two windows as two people.
-Whether two stitched speakers have different voices is still checked afterwards with CAM++ embeddings.
-
-Privacy: telemetry is disabled in app/__init__.py before pyannote is imported; the model is loaded from the local
-cache with a pinned revision and works offline after the first download.
-"""
 from __future__ import annotations
 
 import logging

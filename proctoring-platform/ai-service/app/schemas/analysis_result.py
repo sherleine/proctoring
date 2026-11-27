@@ -1,8 +1,4 @@
-"""Outgoing messages: `audio.analysis.started`, `audio.analysis.completed`, `audio.analysis.failed`.
 
-The models mirror analysis-result.v1.json / analysis-started.v1.json field for field (no extra fields), and
-every payload is validated against those JSON Schemas before it is published.
-"""
 import json
 import uuid
 from typing import Literal

@@ -1,8 +1,4 @@
-"""All Redis Streams commands the service uses, in one place (redis-py).
 
-Stream and group names come from settings (docs/contracts/redis-streams.v1.md). Nothing here knows about
-audio or models; audio bytes never go into Redis.
-"""
 import logging
 
 import redis

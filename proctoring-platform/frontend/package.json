@@ -11,8 +11,7 @@
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "pretest": "node scripts/copy-assets.mjs",
-    "test": "vitest run",
-    "e2e": "node scripts/e2e-browser.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
     "onnxruntime-web": "1.31.1",

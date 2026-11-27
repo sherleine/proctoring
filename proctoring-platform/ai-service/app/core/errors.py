@@ -1,4 +1,3 @@
-"""The two kinds of processing failure. They decide what the worker does with a message."""
 
 
 class PermanentEventError(Exception):

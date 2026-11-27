@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     
     vad_threshold: float = Field(0.5, alias="VAD_THRESHOLD", gt=0, lt=1)
     
-    transcription_enabled: bool = Field(False, alias="TRANSCRIPTION_ENABLED")
+    transcription_enabled: bool = Field(True, alias="TRANSCRIPTION_ENABLED")
     whisper_model: str = Field("base", alias="WHISPER_MODEL")
     whisper_device: Literal["cpu", "cuda"] = Field("cpu", alias="WHISPER_DEVICE")
     whisper_compute_type: str = Field("int8", alias="WHISPER_COMPUTE_TYPE")
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # Tier 2: sends every clip with transcribed speech to a local LLM, with the active exam question, so a
     # candidate reading the question aloud (or a second voice merely overlapping, not assisting) is told apart
     # from a second voice actually helping - including a clip Tier 1 saw as one voice on its own.
-    escalation_enabled: bool = Field(False, alias="ESCALATION_ENABLED")
+    escalation_enabled: bool = Field(True, alias="ESCALATION_ENABLED")
     llm_base_url: str = Field("http://localhost:8000/v1", alias="LLM_BASE_URL")
     llm_model: str = Field("", alias="LLM_MODEL")
     llm_api_key: str = Field("", alias="LLM_API_KEY")  # sent as a Bearer token when set; empty for an open local vLLM

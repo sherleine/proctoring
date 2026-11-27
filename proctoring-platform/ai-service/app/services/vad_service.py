@@ -1,9 +1,4 @@
-"""Speech verification with Silero VAD (silero-vad package, bundled model, CPU).
 
-Only answers "is there speech, and where?". It does not identify speakers and says nothing about
-misconduct. The model is loaded once (load()) and reused; calls are serialized because the model keeps
-internal state between windows.
-"""
 import logging
 import threading
 import warnings

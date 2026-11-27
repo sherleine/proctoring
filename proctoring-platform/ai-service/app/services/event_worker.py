@@ -1,20 +1,4 @@
-"""The Redis Streams consumer loop (one thread per AI_WORKER_CONCURRENCY, default 1).
 
-For every entry of proctoring.audio.events.v1 (docs/contracts/redis-streams.v1.md §5):
-
-  1. validate it; an entry that breaks the contract can never succeed -> dead-letter
-  2. delivered more than AI_MAX_DELIVERIES times -> dead-letter
-  3. (sessionId, eventId) already answered -> acknowledge, nothing else (duplicate delivery)
-  4. publish audio.analysis.started (backend: PROCESSING)
-  5. run the pipeline
-       ok                -> publish audio.analysis.completed
-       PermanentEventError -> publish audio.analysis.failed with its code (backend: FAILED)
-       TransientEventError -> leave pending; retried after AI_CLAIM_IDLE_MS, dead-lettered at the limit
-  6. remember (sessionId, eventId), then XACK - only after the result is in Redis.
-
-Dead-lettering = XADD to the DLQ, publish audio.analysis.failed with error.code DEAD_LETTERED (backend:
-DEAD_LETTERED), then XACK. If any Redis write fails, the entry is not acknowledged and comes back later.
-"""
 import logging
 import os
 import socket

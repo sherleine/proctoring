@@ -1,8 +1,4 @@
-"""Validation against the versioned contract schemas (copies of docs/contracts/schemas in ./contracts).
 
-The JSON Schemas are the source of truth shared with the backend; Pydantic models in this package only give
-typed access to data that has already passed these checks.
-"""
 import json
 from functools import lru_cache
 from pathlib import Path

@@ -1,12 +1,4 @@
-"""Rule-based observations from VAD + transcription + audio levels.
 
-Findings are notes for a human reviewer, never verdicts. In this version they are all severity "info":
-  * NO_SPEECH_VERIFIED - the server-side VAD did not confirm speech (not a concern by itself);
-  * CANDIDATE_SPEECH   - speech was detected in the candidate's audio (the speaker is not identified);
-  * UNUSUAL_AUDIO      - a technical quality note (clipping, very low level) that can affect transcription.
-Finding types that need speaker diarization or meaning (MULTIPLE_VOICES, BACKGROUND_CONVERSATION,
-OVERLAPPING_SPEECH, POSSIBLE_VERBAL_ASSISTANCE) are never produced without that evidence.
-"""
 from app.schemas.analysis_result import Finding
 from app.services.transcription_service import TranscriptionData
 from app.services.vad_service import VadResult

@@ -1,13 +1,4 @@
-"""Question-context lookup: what the candidate was actually shown on screen during a clip.
 
-Nothing upstream provides this yet - audio-event-metadata.v1.json has no question field, and the backend's
-Session/AudioEvent domain has no notion of exam content at all (confirmed by reading both). QuestionContextProvider
-is the integration seam for whenever that exists (likely an HTTP call to the exam platform, keyed by examId/
-sessionId and the clip's time range); NullQuestionContextProvider is the safe default until then.
-
-"Unavailable" is a normal, expected answer here, never an error: llm_review_service treats it as "nothing to
-compare the speech against" and falls back to judging on content alone - it is never a reason to suppress a flag.
-"""
 from dataclasses import dataclass
 from typing import Protocol
 

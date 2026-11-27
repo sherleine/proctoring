@@ -1,5 +1,4 @@
-"""One JSON object per log line. Logs carry identifiers and timings only: never audio, transcripts,
-file paths, tokens or passwords."""
+
 import json
 import logging
 import sys

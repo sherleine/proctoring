@@ -1,19 +1,4 @@
-"""Turns detector outputs into neutral, evidence-backed observations for human review.
 
-Inputs per clip: the server VAD, the diarized speakers (pyannote segmentation), a voice embedding per speaker (CAM++,
-compared between the speakers of the clip), speaker levels and the optional transcript. Speakers are anonymous: no
-voice sample is used, so nobody is ever identified as "the candidate".
-
-  SPEECH_DETECTED / NO_SPEECH_DETECTED   informational, every speech event (server VAD)
-  MULTIPLE_SPEAKERS_DETECTED             two diarized speakers with clearly different voices, or overlapping speech
-  OVERLAPPING_SPEECH_DETECTED            overlap regions totalling >= OVERLAP_MIN_SECONDS
-  BACKGROUND_CONVERSATION_DETECTED       a non-main speaker >= BACKGROUND_LEVEL_DB quieter than the main speaker
-  POSSIBLE_EXTERNAL_ASSISTANCE           >= ASSISTANCE_MIN_INDICATORS indicators, one of them a phrase in the
-                                         (optional) transcript spoken by a non-main speaker
-
-Ordinary speech never creates a review observation. "model-score" confidences are monotonic transforms of model
-scores; "rule" confidences come from the rule's own measurement. Neither is a probability of misconduct.
-"""
 from __future__ import annotations
 
 import re

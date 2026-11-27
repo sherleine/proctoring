@@ -1,4 +1,0 @@
-# Optional: Whisper on an NVIDIA GPU (WHISPER_DEVICE=cuda). CTranslate2 ships cuDNN 9 but needs cuBLAS 12;
-# this wheel installs it inside the venv (no system CUDA changes). Verified on an RTX 3050 Laptop GPU with
-# NVIDIA driver 581.95.
-nvidia-cublas-cu12==12.9.2.10

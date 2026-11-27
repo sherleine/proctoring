@@ -1,9 +1,4 @@
-"""Transcription with faster-whisper (CTranslate2).
 
-The model is loaded once and reused for every event. CPU is the default; CUDA is used only when requested
-(WHISPER_DEVICE=cuda) AND CTranslate2 reports a usable CUDA device - otherwise the service falls back to CPU
-and says so in the log and in /health/ready.
-"""
 import logging
 from dataclasses import dataclass
 

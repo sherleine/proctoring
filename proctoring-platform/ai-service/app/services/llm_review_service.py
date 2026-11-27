@@ -1,15 +1,4 @@
-"""Tier 2 escalation: every clip with a transcript (Tier 1 flagged it as overlap/multiple-speaker or not) is
-sent to a local LLM as a speaker-tagged transcript plus the active exam question, so it can tell "the candidate
-read the question aloud" apart from "someone else is talking" - including a clip Tier 1 saw as a single voice,
-since a back-and-forth conversation split across several separate clips can look like "one voice" in each clip
-taken alone. The LLM's answer is stored as a note next to the original observations - it never replaces or
-deletes them, and a human reviewer always makes the final call. See docs/history (research conversation) for
-the design rationale.
 
-Everything here is pure and unit-testable without a model or a network call except LlmClient.complete, which
-is the one method that actually talks to the LLM server (vLLM's OpenAI-compatible endpoint, structured output
-via response_format/json_schema so the reply is always parsable JSON - see Settings.llm_base_url).
-"""
 import json
 import logging
 from typing import Protocol

@@ -1,4 +1,4 @@
-"""The incoming `audio.event.submitted` stream entry (docs/contracts/redis-streams.v1.md §2-3)."""
+
 import json
 
 from pydantic import BaseModel
