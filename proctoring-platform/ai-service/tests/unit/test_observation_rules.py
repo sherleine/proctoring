@@ -141,6 +141,18 @@ def test_quiet_other_voice_is_background_conversation(store_root):
     assert roles(p) == {"S1": "main", "S2": "background"}
 
 
+def test_main_speaker_is_the_loud_one_even_if_the_quiet_voice_talks_longer(store_root):
+    # S2 is quieter but has more exclusive seconds than S1: duration alone would wrongly make the
+    # background voice "main" and miss BACKGROUND_CONVERSATION_DETECTED entirely (the loud S1 would
+    # then look like just "another voice", never compared against anyone quieter).
+    clip = np.concatenate([voice(4.5), voice(5.5, sign=-1, level=0.02)])
+    result = DiarizationResult([(0.0, 4.5, "S1"), (4.5, 10.0, "S2")], [],
+                               [sp("S1", [(0.0, 4.5)], rms=-14.0), sp("S2", [(4.5, 10.0)], rms=-34.0)])
+    p = run(store_root, clip, result)
+    assert roles(p) == {"S1": "main", "S2": "background"}
+    assert "BACKGROUND_CONVERSATION_DETECTED" in review(p)
+
+
 def test_two_different_voices_are_multiple_speakers_and_nobody_is_identified(store_root):
     clip = np.concatenate([voice(4), np.zeros(SR, np.float32), voice(4, sign=-1)])
     result = DiarizationResult([(0.0, 4.0, "S1"), (5.0, 9.0, "S2")], [], [sp("S1", [(0.0, 4.0)]), sp("S2", [(5.0, 9.0)])])

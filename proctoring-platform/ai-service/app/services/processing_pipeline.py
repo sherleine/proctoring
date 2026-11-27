@@ -15,12 +15,15 @@ import time
 
 import numpy as np
 
-from app.schemas.analysis_result import (AnalysisResult, AudioInfo, DiarizationStage, SpeechStage, Span,
+from app.schemas.analysis_result import (AiReview, AnalysisResult, AudioInfo, DiarizationStage, SpeechStage, Span,
                                          TranscriptionStage, TranscriptSegment)
 from app.schemas.audio_event import AudioEventMessage
-from app.services import analysis_service, detection_rules
+from app.services import analysis_service, detection_rules, llm_review_service
 from app.services.audio_loader import AudioStore, decode_wav
 from app.services.diarization_service import DiarizationResult, DiarizationService
+from app.services.llm_review_service import LlmClient
+from app.services.question_context import NullQuestionContextProvider, QuestionContextProvider
+from app.services.similarity_service import SimilarityService
 from app.services.speaker_service import SpeakerService
 from app.services.transcription_service import TranscriptionService
 from app.services.vad_service import VadService
@@ -34,7 +37,9 @@ class ProcessingPipeline:
     def __init__(self, store: AudioStore, vad: VadService, transcriber: TranscriptionService | None,
                  speaker: SpeakerService | None = None, diarizer: DiarizationService | None = None,
                  diarization_min_speech_seconds: float = 1.0, rules: detection_rules.RulesConfig | None = None,
-                 scale: detection_rules.ScoreScale | None = None):
+                 scale: detection_rules.ScoreScale | None = None, escalation_enabled: bool = False,
+                 llm: LlmClient | None = None, similarity: SimilarityService | None = None,
+                 question_provider: QuestionContextProvider | None = None):
         self.store = store
         self.vad = vad
         self.transcriber = transcriber
@@ -43,11 +48,18 @@ class ProcessingPipeline:
         self.diarization_min_speech_seconds = diarization_min_speech_seconds
         self.rules = rules or detection_rules.RulesConfig()
         self.scale = scale or detection_rules.ScoreScale()
+        # Tier 2 escalation (optional): off unless escalation_enabled and an LLM client are both set, exactly
+        # like transcriber/speaker/diarizer above - absent means "this stage did not run", never "it failed".
+        self.escalation_enabled = escalation_enabled
+        self.llm = llm
+        self.similarity = similarity
+        self.question_provider = question_provider or NullQuestionContextProvider()
 
     @property
     def ready(self) -> bool:
         return (self.vad.loaded and (self.transcriber is None or self.transcriber.loaded)
-                and (self.speaker is None or self.speaker.loaded) and (self.diarizer is None or self.diarizer.loaded))
+                and (self.speaker is None or self.speaker.loaded) and (self.diarizer is None or self.diarizer.loaded)
+                and (self.similarity is None or self.similarity.loaded))
 
     def process(self, message: AudioEventMessage) -> AnalysisResult:
         started = time.perf_counter()
@@ -66,6 +78,7 @@ class ProcessingPipeline:
         if diarization is not None and diarization.speakers:
             observations += self._analyse_speakers(message, model_input, diarization, diarization_stage, transcription)
         findings = analysis_service.analyse(vad, transcription, rms, peak, clipped, gain_db)
+        ai_review = self._escalate(message, diarization, diarization_stage, transcription, observations)
 
         if self.transcriber is None:
             transcription_stage = TranscriptionStage(available=False, reason="Transcription is disabled (TRANSCRIPTION_ENABLED=false)")
@@ -92,6 +105,7 @@ class ProcessingPipeline:
             diarization=diarization_stage,
             findings=findings,
             observations=observations,
+            aiReview=AiReview(**ai_review),
         )
         log.info("Event analysed", extra={"eventId": message.eventId, "sessionId": message.sessionId,
                                            "speechVerified": vad.verified, "speechSeconds": vad.speech_seconds,
@@ -147,3 +161,24 @@ class ProcessingPipeline:
             transcription.segments if transcription else None, self.scale, self.rules,
             model_name="pyannote segmentation + CAM++",
             model_version=f"{self.diarizer.model_id}; {self.speaker.model_id if self.speaker else 'no voice model'}")
+
+    def _escalate(self, message: AudioEventMessage, diarization: DiarizationResult | None,
+                 diarization_stage: DiarizationStage, transcription, observations: list[dict]) -> dict:
+        """Tier 2: only runs when Tier 1 already flagged overlap/multiple speakers on this clip. Always
+        returns a dict (never None) - "attempted": false with a reason is itself useful information for a
+        reviewer, the same way an unavailable transcription/diarization stage reports why."""
+        if not self.escalation_enabled or self.llm is None:
+            return {"attempted": False, "reason": "Tier 2 escalation is disabled (ESCALATION_ENABLED=false)"}
+        if diarization is None or transcription is None:
+            return {"attempted": False, "reason": "No diarized speech with a transcript to review for this clip"}
+        role_by_label = {s["speaker"]: s.get("role", "uncertain") for s in diarization_stage.speakers}
+        tagged = llm_review_service.tag_transcript(transcription.segments, diarization.turns, role_by_label)
+        question = self.question_provider.get(
+            session_id=message.sessionId, exam_id=message.examId,
+            start_at=message.event.get("startedAt", ""), end_at=message.event.get("endedAt", ""))
+        diarization_summary = {"speakerCount": diarization.speaker_count,
+                               "overlapSeconds": diarization.overlap_seconds,
+                               "distinctVoices": diarization_stage.distinctVoices}
+        return llm_review_service.review_clip(
+            tagged_segments=tagged, question=question, observation_types=[o["observationType"] for o in observations],
+            diarization_summary=diarization_summary, similarity=self.similarity, llm=self.llm)

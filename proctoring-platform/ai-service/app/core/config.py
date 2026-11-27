@@ -42,6 +42,20 @@ class Settings(BaseSettings):
     whisper_device: Literal["cpu", "cuda"] = Field("cpu", alias="WHISPER_DEVICE")
     whisper_compute_type: str = Field("int8", alias="WHISPER_COMPUTE_TYPE")
     whisper_language: str | None = Field(None, alias="WHISPER_LANGUAGE")
+    # "translate" always yields English text regardless of the spoken language, so a Tier 2 escalation can
+    # compare it against an English question/options even when the candidate answers in another language.
+    whisper_task: Literal["transcribe", "translate"] = Field("translate", alias="WHISPER_TASK")
+
+
+    # Tier 2: escalates clips that Tier 1 already flagged as overlap/multiple-speaker to a local LLM, with the
+    # active exam question, so a candidate reading the question aloud is not flagged as assistance.
+    escalation_enabled: bool = Field(False, alias="ESCALATION_ENABLED")
+    llm_base_url: str = Field("http://localhost:8000/v1", alias="LLM_BASE_URL")
+    llm_model: str = Field("", alias="LLM_MODEL")
+    llm_timeout_seconds: float = Field(20.0, alias="LLM_TIMEOUT_SECONDS", gt=0)
+    # Cheap triage signal only (never a suppression gate on its own - see llm_review_service.review_clip).
+    similarity_enabled: bool = Field(False, alias="SIMILARITY_ENABLED")
+    similarity_model: str = Field("intfloat/multilingual-e5-small", alias="SIMILARITY_MODEL")
 
     
     

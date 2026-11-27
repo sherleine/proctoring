@@ -20,7 +20,9 @@ from app.services.audio_loader import AudioStore
 from app.services.event_worker import EventWorker, default_consumer_name
 from app.services.detection_rules import RulesConfig, ScoreScale
 from app.services.diarization_service import DiarizationConfig, DiarizationService
+from app.services.llm_review_service import VllmClient
 from app.services.processing_pipeline import ProcessingPipeline
+from app.services.similarity_service import SimilarityService
 from app.services.speaker_service import SpeakerService
 from app.services.transcription_service import TranscriptionService
 from app.services.vad_service import VadService
@@ -38,7 +40,8 @@ class Runtime:
         self.vad = VadService(settings.vad_threshold)
         self.transcriber = TranscriptionService(settings.whisper_model, settings.whisper_device,
                                                 settings.whisper_compute_type, settings.language,
-                                                workers=settings.worker_concurrency) if settings.transcription_enabled else None
+                                                workers=settings.worker_concurrency,
+                                                task=settings.whisper_task) if settings.transcription_enabled else None
         self.speaker = SpeakerService(settings.speaker_model_file, num_threads=settings.speaker_threads) \
             if settings.speaker_enabled else None
         self.diarizer = DiarizationService(
@@ -50,6 +53,9 @@ class Runtime:
                               min_overlap_seconds=settings.diarization_min_overlap_seconds),
             token=settings.hf_token.get_secret_value() if settings.hf_token else None,
         ) if settings.diarization_enabled else None
+        self.similarity = SimilarityService(settings.similarity_model) if settings.similarity_enabled else None
+        self.llm = VllmClient(settings.llm_base_url, settings.llm_model,
+                              settings.llm_timeout_seconds) if settings.escalation_enabled else None
         self.pipeline = ProcessingPipeline(
             self.store, self.vad, self.transcriber, self.speaker, self.diarizer, settings.diarization_min_speech_seconds,
             RulesConfig(overlap_min_seconds=settings.overlap_min_seconds, multiple_from_overlap=settings.multiple_from_overlap,
@@ -57,7 +63,8 @@ class Runtime:
                         assistance_min_indicators=settings.assistance_min_indicators,
                         assistance_require_transcript=settings.assistance_require_transcript,
                         min_voice_seconds=settings.speaker_min_segment_seconds),
-            ScoreScale(same=settings.speaker_same_threshold, different=settings.speaker_different_threshold))
+            ScoreScale(same=settings.speaker_same_threshold, different=settings.speaker_different_threshold),
+            escalation_enabled=settings.escalation_enabled, llm=self.llm, similarity=self.similarity)
         base = settings.consumer_name or default_consumer_name()
         self.workers = [EventWorker(self.streams, self.pipeline,
                                     base if settings.worker_concurrency == 1 else f"{base}-{i + 1}",
@@ -79,6 +86,8 @@ class Runtime:
                 self.diarizer.load()
             if self.transcriber:
                 self.transcriber.load()
+            if self.similarity:
+                self.similarity.load()
         except Exception as exc:  # the API stays up and reports not-ready with the reason
             self.model_error = f"Model loading failed ({type(exc).__name__})"
             log.exception("Model loading failed; the worker will not start")
@@ -107,8 +116,9 @@ async def lifespan(app: FastAPI):
         "voiceComparison": settings.speaker_enabled,
         "diarization": settings.diarization_enabled, "hfOffline": settings.hf_hub_offline,
         "whisperModel": settings.whisper_model if settings.transcription_enabled else None, "whisperDevice": settings.whisper_device,
-        "computeType": settings.whisper_compute_type, "language": settings.language or "auto",
-        "audioStoreAvailable": runtime.store.is_available()})
+        "computeType": settings.whisper_compute_type, "whisperTask": settings.whisper_task,
+        "language": settings.language or "auto", "escalation": settings.escalation_enabled,
+        "similarity": settings.similarity_enabled, "audioStoreAvailable": runtime.store.is_available()})
     app.state.runtime = runtime
     runtime.start()
     yield

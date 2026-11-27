@@ -66,13 +66,16 @@ def cuda_device_count() -> int:
 
 
 class TranscriptionService:
-    def __init__(self, model_size: str, device: str, compute_type: str, language: str | None, workers: int = 1):
+    def __init__(self, model_size: str, device: str, compute_type: str, language: str | None, workers: int = 1,
+                 task: str = "transcribe"):
         self.model_size = model_size
         self.requested_device = device
         self.device = device
         self.compute_type = compute_type
         self.language = language
         self._workers = workers
+        # "translate" always yields English text, whatever language was spoken - see Settings.whisper_task.
+        self.task = task
         self._model = None
 
     @property
@@ -98,14 +101,14 @@ class TranscriptionService:
                                    num_workers=self._workers)
         log.info("Transcription model loaded", extra={"model": self.model_id, "device": self.device,
                                                        "computeType": self.compute_type,
-                                                       "language": self.language or "auto"})
+                                                       "language": self.language or "auto", "task": self.task})
 
     def transcribe(self, samples: np.ndarray) -> TranscriptionData:
         if self._model is None:
             raise TransientEventError("Transcription model is not loaded")
         try:
             segments, info = self._model.transcribe(
-                samples, language=self.language, beam_size=5, vad_filter=False,
+                samples, language=self.language, task=self.task, beam_size=5, vad_filter=False,
                 condition_on_previous_text=False, temperature=0.0)
             raw = list(segments)  # the generator does the actual decoding
         except Exception as exc:

@@ -85,8 +85,26 @@ class ErrorInfo(BaseModel):
     deliveryCount: int | None = None
 
 
+class AiReview(BaseModel):
+    """Tier 2 escalation output (contract 1.2, optional): a local LLM's read on a clip Tier 1 already flagged
+    as overlap/multiple-speaker, given the speaker-tagged transcript and the active exam question. This is
+    never a verdict - attempted=false (with a reason) and modelValid=false are both normal, expected outcomes,
+    and the original observations stand on their own regardless of what this says."""
+    attempted: bool
+    reason: str | None = None  # set when attempted=false
+    modelValid: bool | None = None  # set when attempted=true: did the LLM's reply match the schema
+    similarityScore: float | None = None  # cosine similarity pre-filter, -1 to 1; null when not computed
+    classification: Literal["likely_reading_question", "likely_benign_other", "possible_external_assistance",
+                           "inconclusive"] | None = None
+    attributedTo: Literal["main", "other", "mixed", "unknown"] | None = None
+    matchedQuestionSpan: list[float] | None = None
+    confidence: float | None = None
+    rationale: str | None = None
+    recommendedReviewPriority: Literal["low", "normal", "high"] | None = None
+
+
 class AnalysisResult(BaseModel):
-    schemaVersion: Literal["1.0", "1.1"] = "1.1"
+    schemaVersion: Literal["1.0", "1.1", "1.2"] = "1.2"
     eventId: str
     sessionId: str
     candidateId: str
@@ -102,6 +120,8 @@ class AnalysisResult(BaseModel):
     error: ErrorInfo | None = None
     # contract 1.1
     observations: list[dict] = Field(default_factory=list)
+    # contract 1.2
+    aiReview: AiReview | None = None
 
     def to_payload(self) -> dict:
         payload = self.model_dump(mode="json", exclude_none=False)

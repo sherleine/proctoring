@@ -129,12 +129,25 @@ def estimate_overlap_level(main_dbfs: float | None, overlap_dbfs: float | None) 
 
 def assign_roles(views: list[SpeakerView], pair_similarity: dict[tuple[str, str], float], scale: ScoreScale,
                  cfg: RulesConfig, overlap_dbfs: float | None = None) -> SpeakerView | None:
-    """Sets main/role on each speaker and returns the main speaker (the one with the most non-overlapping speech).
-    Roles describe the audio, not identities: main, other (clearly different voice), background (quieter voice),
-    uncertain (could not be told apart)."""
+    """Sets main/role on each speaker and returns the main speaker. Roles describe the audio, not identities: main,
+    other (clearly different voice), background (quieter voice), uncertain (could not be told apart).
+
+    The main speaker is normally the one with the most non-overlapping speech - but a long, quiet background
+    conversation can add up to more seconds than the person at the microphone, who tends to speak in shorter,
+    louder bursts. So the most-spoken speaker is overridden only when a *different* speaker, with a non-trivial
+    amount of exclusive speech of their own (>= min_voice_seconds, so a brief interjection cannot win this), is
+    clearly louder (>= background_level_db, the same margin used to call a voice "background") - i.e. only when
+    picking by duration alone would otherwise label the loudest voice in the room as the quiet background one."""
     if not views:
         return None
-    main = max(views, key=lambda v: (v.exclusive_seconds, v.speech_seconds))
+    by_time = max(views, key=lambda v: (v.exclusive_seconds, v.speech_seconds))
+    measured_loud = [v for v in views if v.rms_dbfs is not None and v.exclusive_seconds >= cfg.min_voice_seconds]
+    loudest = max(measured_loud, key=lambda v: v.rms_dbfs) if measured_loud else None
+    if (loudest is not None and loudest is not by_time and by_time.rms_dbfs is not None
+            and loudest.rms_dbfs - by_time.rms_dbfs >= cfg.background_level_db):
+        main = loudest  # `by_time` only out-talked a clearly louder speaker; that speaker is main instead
+    else:
+        main = by_time
     main.main = True
     main.role = "main"
     for v in views:  # speakers heard only during overlap: estimate their level from the added energy
