@@ -1,8 +1,10 @@
-"""Tier 2 escalation: when Tier 1 (VAD + diarization + CAM++ + detection_rules) flags a clip as overlapping or
-multiple-speaker, send a speaker-tagged transcript plus the active exam question to a local LLM, and ask it to
-tell "the candidate read the question aloud" apart from "someone else is talking". The LLM's answer is stored
-as a note next to the original observations - it never replaces or deletes them, and a human reviewer always
-makes the final call. See docs/history (research conversation) for the design rationale.
+"""Tier 2 escalation: every clip with a transcript (Tier 1 flagged it as overlap/multiple-speaker or not) is
+sent to a local LLM as a speaker-tagged transcript plus the active exam question, so it can tell "the candidate
+read the question aloud" apart from "someone else is talking" - including a clip Tier 1 saw as a single voice,
+since a back-and-forth conversation split across several separate clips can look like "one voice" in each clip
+taken alone. The LLM's answer is stored as a note next to the original observations - it never replaces or
+deletes them, and a human reviewer always makes the final call. See docs/history (research conversation) for
+the design rationale.
 
 Everything here is pure and unit-testable without a model or a network call except LlmClient.complete, which
 is the one method that actually talks to the LLM server (vLLM's OpenAI-compatible endpoint, structured output
@@ -20,8 +22,9 @@ from app.services.transcription_service import TranscriptSegmentData
 
 log = logging.getLogger(__name__)
 
-# Only these two Tier 1 flags are evidence of "more than one voice" - the only situation where "was this just
-# the candidate reading the question" is a meaningful question to ask at all.
+# These two Tier 1 flags are the strongest evidence of "more than one voice" within a single clip; they're
+# passed to the LLM as context (see build_prompt) even though escalation itself no longer gates on them -
+# every clip with a transcript is now reviewed, so a single clip Tier 1 saw as one voice still gets a look.
 REVIEW_TRIGGER_TYPES = frozenset({"MULTIPLE_SPEAKERS_DETECTED", "OVERLAPPING_SPEECH_DETECTED"})
 
 REVIEW_SCHEMA = {
@@ -89,7 +92,7 @@ def build_prompt(tagged_segments: list[dict], question: QuestionContext | None, 
     lines = [
         "You are assisting exam proctoring review. You decide nothing automatically - a human reviewer makes "
         "the final call. Judge only from the evidence below; do not assume anything it does not say.",
-        f"Rule-based flags already raised for this clip: {', '.join(observation_types)}.",
+        f"Rule-based flags already raised for this clip: {', '.join(observation_types) if observation_types else 'none - this clip was reviewed as one voice, but a conversation can span separate clips'}.",
         f"Diarization summary: {json.dumps(diarization_summary, separators=(',', ':'))}",
     ]
     if question is not None:
@@ -116,11 +119,13 @@ def build_prompt(tagged_segments: list[dict], question: QuestionContext | None, 
 
 def review_clip(*, tagged_segments: list[dict], question: QuestionContext | None, observation_types: list[str],
                diarization_summary: dict, similarity: SimilarityService | None, llm: LlmClient) -> dict:
-    """The orchestration for one clip's Tier 2 escalation. Always returns a dict with at least "attempted";
-    never raises - a failure anywhere downgrades to "attempted but inconclusive", never to silence."""
-    if not set(observation_types) & REVIEW_TRIGGER_TYPES:
-        return {"attempted": False, "reason": "no overlap/multiple-speaker flag on this clip"}
+    """The orchestration for one clip's Tier 2 escalation. Every clip with transcribable speech is reviewed,
+    whatever Tier 1 found in that clip alone - a question in one clip and its answer in a later, separate clip
+    can each look like "one voice" on their own. Always returns a dict with at least "attempted"; never raises -
+    a failure anywhere downgrades to "attempted but inconclusive", never to silence."""
     if not any(seg["text"].strip() for seg in tagged_segments):
+        log.debug("Escalation skipped: no transcribable speech in this clip",
+                 extra={"observationTypes": observation_types})
         return {"attempted": False, "reason": "no transcribable speech in this clip"}
 
     similarity_score = None
@@ -133,24 +138,42 @@ def review_clip(*, tagged_segments: list[dict], question: QuestionContext | None
                 log.warning("Similarity pre-filter failed", extra={"error": str(exc)})
 
     prompt = build_prompt(tagged_segments, question, observation_types, diarization_summary, similarity_score)
+    log.info("Escalating clip to the LLM", extra={"observationTypes": observation_types,
+                                                   "hasQuestion": question is not None,
+                                                   "similarityScore": similarity_score})
     try:
         payload = llm.complete(prompt, REVIEW_SCHEMA)
     except Exception as exc:
+        log.warning("LLM call failed; falling back to inconclusive", extra={"error": f"{type(exc).__name__}: {exc}"})
         return {"attempted": True, "modelValid": False, "similarityScore": similarity_score,
                **fallback_review(type(exc).__name__)}
     validated = validate_review(payload)
     if validated is None:
+        log.warning("LLM response did not match the expected schema; falling back to inconclusive",
+                   extra={"rawResponse": payload})
         return {"attempted": True, "modelValid": False, "similarityScore": similarity_score,
                **fallback_review("response did not match the expected schema")}
+    log.info("LLM review complete", extra={"classification": validated["classification"],
+                                           "attributedTo": validated["attributedTo"],
+                                           "confidence": validated["confidence"],
+                                           "recommendedReviewPriority": validated["recommendedReviewPriority"]})
     return {"attempted": True, "modelValid": True, "similarityScore": similarity_score, **validated}
 
 
-class VllmClient:
-    """Talks to a local LLM through vLLM's OpenAI-compatible server, with the JSON schema enforced by the
-    server's structured-output support (response_format: json_schema) rather than trusted to prompting alone."""
+class TruncatedResponseError(RuntimeError):
+    """The LLM stopped because it reached max_tokens - the JSON is incomplete and must not be trusted."""
 
-    def __init__(self, base_url: str, model: str, timeout_seconds: float = 20.0):
+
+class VllmClient:
+    """Talks to an LLM through an OpenAI-compatible server (vLLM / LiteLLM). The server is asked for a JSON object
+    and given the schema in the prompt; review_clip then validates the answer against that schema locally."""
+
+    def __init__(self, base_url: str, model: str, timeout_seconds: float = 20.0, api_key: str = "",
+                 max_tokens: int = 800, retries: int = 1):
         self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+        self.max_tokens = max_tokens
+        self.retries = retries
         self.model = model
         self.timeout_seconds = timeout_seconds
 
@@ -159,15 +182,38 @@ class VllmClient:
         return f"vllm:{self.model}"
 
     def complete(self, prompt: str, schema: dict) -> dict:
+        """One retry, only for a runaway answer: with JSON-schema decoding some models occasionally keep
+        emitting whitespace inside the object until they hit the token cap (seen: ~19,600 tokens / 174 s for an
+        answer that normally takes ~150 tokens / 1.3 s). max_tokens bounds that to seconds; a cut-off answer is
+        never parsed as if it were complete. The retry uses a small temperature to step off the stuck path."""
+        last_error: Exception | None = None
+        for attempt in range(1 + self.retries):
+            try:
+                return self._complete_once(prompt, schema, temperature=0.0 if attempt == 0 else 0.3)
+            except TruncatedResponseError as exc:
+                last_error = exc
+                log.warning("LLM answer was cut off at max_tokens; retrying" if attempt < self.retries else
+                            "LLM answer was cut off at max_tokens", extra={"attempt": attempt + 1})
+        raise last_error  # type: ignore[misc]
+
+    def _complete_once(self, prompt: str, schema: dict, temperature: float) -> dict:
         import httpx
         body = {
             "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.0,
-            "response_format": {"type": "json_schema",
-                               "json_schema": {"name": "clip_review", "schema": schema, "strict": True}},
+            "messages": [{"role": "user", "content": f"{prompt}\nJSON schema of the answer: "
+                                                     f"{json.dumps(schema, separators=(',', ':'))}"}],
+            "temperature": temperature,
+            "max_tokens": self.max_tokens,
+            # json_object, not strict json_schema: on the deployed model, schema-constrained decoding regularly
+            # looped on whitespace until max_tokens (4/5 first attempts), json_object answered 5/5 in ~1 s.
+            # The answer is still checked against the schema locally (validate_review), so nothing is trusted blind.
+            "response_format": {"type": "json_object"},
         }
-        response = httpx.post(f"{self.base_url}/chat/completions", json=body, timeout=self.timeout_seconds)
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+        response = httpx.post(f"{self.base_url}/chat/completions", json=body, headers=headers,
+                              timeout=self.timeout_seconds)
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"]
-        return json.loads(content)
+        choice = response.json()["choices"][0]
+        if choice.get("finish_reason") == "length":
+            raise TruncatedResponseError(f"answer hit max_tokens={self.max_tokens}")
+        return json.loads(choice["message"]["content"])

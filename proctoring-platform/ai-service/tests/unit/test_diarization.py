@@ -172,3 +172,43 @@ def test_too_little_speech_is_not_diarized(store_root):
     payload, diarizer = run(store_root, np.concatenate([voice(0.6), np.zeros(SR * 2, np.float32)]), d)
     assert diarizer.calls == 0 and payload["diarization"]["available"] is False
     assert "not diarized" in payload["diarization"]["reason"]
+
+
+# ------------------------------------------------------------------ clips longer than one window
+
+def window_activity(start, *ranges):
+    """A local speaker's activity in a 10 s window starting at `start`, for clip-time (s, e) ranges."""
+    return activity(*[(max(0, s - start), min(10, e - start)) for s, e in ranges if e > start and s < start + 10])
+
+
+def interpret_windows(starts, per_window, duration):
+    """per_window[c] = list of local-speaker activities for window c (padded to 3)."""
+    data = np.stack([np.stack(list(ws) + [np.zeros(FRAMES)] * (3 - len(ws)), axis=-1) for ws in per_window])
+    return DiarizationService(DiarizationConfig())._interpret(data, Windows(starts), duration,
+                                                              np.full(int(SR * duration), 0.1, np.float32))
+
+
+def test_one_voice_seen_by_many_overlapping_windows_is_one_speaker_with_no_overlap():
+    # 21 s clip, windows every 1 s; one person speaks 2-3.5, 6.5-8, 14-16. Each window gives that voice a
+    # different local index - the bug this guards against counted every window's copy as a new speaker.
+    speech = [(2, 3.5), (6.5, 8), (14, 16)]
+    starts = [float(i) for i in range(12)]
+    per_window = []
+    for i, st in enumerate(starts):
+        voice_track = window_activity(st, *speech)
+        slots = [np.zeros(FRAMES)] * 3
+        slots[i % 3] = voice_track
+        per_window.append(slots)
+    r = interpret_windows(starts, per_window, 21.0)
+    assert r.speaker_count == 1 and r.overlaps == []
+
+
+def test_two_overlapping_voices_across_windows_stay_two_speakers_with_overlap():
+    a, b = [(0, 12)], [(5, 8)]
+    starts = [0.0, 1.0, 2.0, 3.0]
+    per_window = [[window_activity(st, *b), window_activity(st, *a)] if i % 2 else
+                  [window_activity(st, *a), window_activity(st, *b)] for i, st in enumerate(starts)]
+    r = interpret_windows(starts, per_window, 13.0)
+    assert r.speaker_count == 2
+    (start, end), = r.overlaps
+    assert start == pytest.approx(5, abs=0.1) and end == pytest.approx(8, abs=0.1)

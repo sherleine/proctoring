@@ -47,15 +47,22 @@ class Settings(BaseSettings):
     whisper_task: Literal["transcribe", "translate"] = Field("translate", alias="WHISPER_TASK")
 
 
-    # Tier 2: escalates clips that Tier 1 already flagged as overlap/multiple-speaker to a local LLM, with the
-    # active exam question, so a candidate reading the question aloud is not flagged as assistance.
+    # Tier 2: sends every clip with transcribed speech to a local LLM, with the active exam question, so a
+    # candidate reading the question aloud (or a second voice merely overlapping, not assisting) is told apart
+    # from a second voice actually helping - including a clip Tier 1 saw as one voice on its own.
     escalation_enabled: bool = Field(False, alias="ESCALATION_ENABLED")
     llm_base_url: str = Field("http://localhost:8000/v1", alias="LLM_BASE_URL")
     llm_model: str = Field("", alias="LLM_MODEL")
+    llm_api_key: str = Field("", alias="LLM_API_KEY")  # sent as a Bearer token when set; empty for an open local vLLM
     llm_timeout_seconds: float = Field(20.0, alias="LLM_TIMEOUT_SECONDS", gt=0)
+    llm_max_tokens: int = Field(800, alias="LLM_MAX_TOKENS", ge=100)  # a review answer is ~150-300 tokens
     # Cheap triage signal only (never a suppression gate on its own - see llm_review_service.review_clip).
     similarity_enabled: bool = Field(False, alias="SIMILARITY_ENABLED")
     similarity_model: str = Field("intfloat/multilingual-e5-small", alias="SIMILARITY_MODEL")
+    # Demo/manual-testing only: a POST /debug/analyze endpoint that accepts an uploaded clip directly, bypassing
+    # the backend + Redis entirely (see app/api/debug_analyze.py). Never enable this in a real deployment -
+    # production audio only ever arrives through the backend. Also turns on Swagger (/docs).
+    debug_analyze_endpoint_enabled: bool = Field(False, alias="DEBUG_ANALYZE_ENDPOINT_ENABLED")
 
     
     

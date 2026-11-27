@@ -61,7 +61,10 @@ class ProcessingPipeline:
                 and (self.speaker is None or self.speaker.loaded) and (self.diarizer is None or self.diarizer.loaded)
                 and (self.similarity is None or self.similarity.loaded))
 
-    def process(self, message: AudioEventMessage) -> AnalysisResult:
+    def process(self, message: AudioEventMessage, question_override=None) -> AnalysisResult:
+        """question_override: when given, used in place of self.question_provider.get(...) for this one call.
+        Only the manual-upload debug endpoint (app/api/debug_analyze.py) passes this - the real Redis worker
+        never does, since the real question context must come from the server-side provider, never a caller."""
         started = time.perf_counter()
         audio = decode_wav(self.store.read(message.audioRef))
         samples = audio.samples
@@ -78,7 +81,7 @@ class ProcessingPipeline:
         if diarization is not None and diarization.speakers:
             observations += self._analyse_speakers(message, model_input, diarization, diarization_stage, transcription)
         findings = analysis_service.analyse(vad, transcription, rms, peak, clipped, gain_db)
-        ai_review = self._escalate(message, diarization, diarization_stage, transcription, observations)
+        ai_review = self._escalate(message, diarization, diarization_stage, transcription, observations, question_override)
 
         if self.transcriber is None:
             transcription_stage = TranscriptionStage(available=False, reason="Transcription is disabled (TRANSCRIPTION_ENABLED=false)")
@@ -163,17 +166,19 @@ class ProcessingPipeline:
             model_version=f"{self.diarizer.model_id}; {self.speaker.model_id if self.speaker else 'no voice model'}")
 
     def _escalate(self, message: AudioEventMessage, diarization: DiarizationResult | None,
-                 diarization_stage: DiarizationStage, transcription, observations: list[dict]) -> dict:
-        """Tier 2: only runs when Tier 1 already flagged overlap/multiple speakers on this clip. Always
-        returns a dict (never None) - "attempted": false with a reason is itself useful information for a
-        reviewer, the same way an unavailable transcription/diarization stage reports why."""
+                 diarization_stage: DiarizationStage, transcription, observations: list[dict],
+                 question_override=None) -> dict:
+        """Tier 2: runs on every clip with a diarized, transcribed voice - not just ones Tier 1 flagged in
+        isolation, since a conversation split across separate clips can look like one voice in each clip alone.
+        Always returns a dict (never None) - "attempted": false with a reason is itself useful information for
+        a reviewer, the same way an unavailable transcription/diarization stage reports why."""
         if not self.escalation_enabled or self.llm is None:
             return {"attempted": False, "reason": "Tier 2 escalation is disabled (ESCALATION_ENABLED=false)"}
         if diarization is None or transcription is None:
             return {"attempted": False, "reason": "No diarized speech with a transcript to review for this clip"}
         role_by_label = {s["speaker"]: s.get("role", "uncertain") for s in diarization_stage.speakers}
         tagged = llm_review_service.tag_transcript(transcription.segments, diarization.turns, role_by_label)
-        question = self.question_provider.get(
+        question = question_override if question_override is not None else self.question_provider.get(
             session_id=message.sessionId, exam_id=message.examId,
             start_at=message.event.get("startedAt", ""), end_at=message.event.get("endedAt", ""))
         diarization_summary = {"speakerCount": diarization.speaker_count,

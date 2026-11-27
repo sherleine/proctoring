@@ -32,9 +32,10 @@ jsonschema[format]==4.26.0
 pydantic==2.14.4
 pydantic-settings==2.16.3
 
-# Health API
+# Health API (+ the optional debug-upload endpoint, which needs python-multipart for file/form uploads)
 fastapi==0.165.0
 uvicorn==0.54.0
+python-multipart==0.0.32
 
 # Demo script + tests
 httpx==0.28.1

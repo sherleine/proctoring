@@ -69,10 +69,14 @@ def test_validate_review_rejects_a_non_dict():
 MAIN_SEGMENT = [{"start": 0.0, "end": 2.0, "text": "what is the capital of France", "speaker": "S1", "role": "main"}]
 
 
-def test_review_clip_is_not_attempted_without_a_trigger_observation():
-    out = review_clip(tagged_segments=MAIN_SEGMENT, question=None, observation_types=["BACKGROUND_CONVERSATION_DETECTED"],
-                      diarization_summary={}, similarity=None, llm=FakeLlm(VALID_RESPONSE))
-    assert out == {"attempted": False, "reason": "no overlap/multiple-speaker flag on this clip"}
+def test_review_clip_still_runs_on_a_clip_tier_1_saw_as_a_single_voice():
+    """A question in one clip and its answer in a separate clip can each look like "one voice" alone - so
+    escalation no longer gates on a Tier 1 flag; only on there being something to transcribe."""
+    llm = FakeLlm(VALID_RESPONSE)
+    out = review_clip(tagged_segments=MAIN_SEGMENT, question=None, observation_types=[],
+                      diarization_summary={}, similarity=None, llm=llm)
+    assert out["attempted"] is True
+    assert llm.calls, "the LLM should have been called even with no Tier 1 flag on this clip"
 
 
 def test_review_clip_is_not_attempted_with_no_transcribable_speech():
@@ -106,8 +110,8 @@ def test_review_clip_falls_back_when_the_llm_response_is_invalid():
     assert out["attempted"] is True and out["modelValid"] is False
 
 
-def test_review_clip_never_raises_when_the_trigger_set_is_empty():
-    assert REVIEW_TRIGGER_TYPES  # sanity: the set itself is non-empty
+def test_review_clip_is_not_attempted_with_an_empty_clip():
+    assert REVIEW_TRIGGER_TYPES  # sanity: still used as prompt context in build_prompt
     out = review_clip(tagged_segments=[], question=None, observation_types=[], diarization_summary={},
                       similarity=None, llm=FakeLlm(VALID_RESPONSE))
     assert out["attempted"] is False
@@ -118,3 +122,49 @@ def test_build_prompt_tells_the_llm_only_main_speech_counts_as_reading():
                           ["OVERLAPPING_SPEECH_DETECTED"], {"speakerCount": 2}, similarity_score=0.9)
     assert "main" in prompt and "possible_external_assistance" in prompt
     assert "What is the capital of France?" in prompt
+
+
+def test_build_prompt_handles_no_tier_1_flags_at_all():
+    prompt = build_prompt(MAIN_SEGMENT, None, [], {"speakerCount": 1}, similarity_score=None)
+    assert "none" in prompt
+    assert "what is the capital of France" in prompt
+
+
+# ------------------------------------------------------------------ VllmClient runaway handling
+
+class _Resp:
+    def __init__(self, content, finish):
+        self._j = {"choices": [{"finish_reason": finish, "message": {"content": content}}]}
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._j
+
+
+def _client_with(monkeypatch, responses):
+    import httpx
+    from app.services.llm_review_service import VllmClient
+    sent = []
+
+    def fake_post(url, json, headers, timeout):
+        sent.append(json)
+        return responses.pop(0)
+    monkeypatch.setattr(httpx, "post", fake_post)
+    return VllmClient("http://llm/v1", "m", api_key="k", max_tokens=800), sent
+
+
+def test_runaway_answer_is_retried_once_and_the_retry_is_used(monkeypatch):
+    client, sent = _client_with(monkeypatch, [_Resp('{"a": 1,\n  \n  \n', "length"), _Resp('{"ok": true}', "stop")])
+    assert client.complete("p", {}) == {"ok": True}
+    assert len(sent) == 2 and all(b["max_tokens"] == 800 for b in sent)
+    assert sent[0]["temperature"] == 0.0 and sent[1]["temperature"] > 0
+
+
+def test_two_runaway_answers_raise_so_the_review_falls_back(monkeypatch):
+    import pytest
+    from app.services.llm_review_service import TruncatedResponseError
+    client, _ = _client_with(monkeypatch, [_Resp("{", "length"), _Resp("{", "length")])
+    with pytest.raises(TruncatedResponseError):
+        client.complete("p", {})

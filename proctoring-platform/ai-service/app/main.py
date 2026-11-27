@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.debug_analyze import router as debug_analyze_router
 from app.api.health import router as health_router
 from app.clients.redis_client import RedisStreams
 from app.core.config import Settings, get_settings
@@ -55,7 +56,8 @@ class Runtime:
         ) if settings.diarization_enabled else None
         self.similarity = SimilarityService(settings.similarity_model) if settings.similarity_enabled else None
         self.llm = VllmClient(settings.llm_base_url, settings.llm_model,
-                              settings.llm_timeout_seconds) if settings.escalation_enabled else None
+                              settings.llm_timeout_seconds, api_key=settings.llm_api_key,
+                              max_tokens=settings.llm_max_tokens) if settings.escalation_enabled else None
         self.pipeline = ProcessingPipeline(
             self.store, self.vad, self.transcriber, self.speaker, self.diarizer, settings.diarization_min_speech_seconds,
             RulesConfig(overlap_min_seconds=settings.overlap_min_seconds, multiple_from_overlap=settings.multiple_from_overlap,
@@ -118,15 +120,23 @@ async def lifespan(app: FastAPI):
         "whisperModel": settings.whisper_model if settings.transcription_enabled else None, "whisperDevice": settings.whisper_device,
         "computeType": settings.whisper_compute_type, "whisperTask": settings.whisper_task,
         "language": settings.language or "auto", "escalation": settings.escalation_enabled,
-        "similarity": settings.similarity_enabled, "audioStoreAvailable": runtime.store.is_available()})
+        "similarity": settings.similarity_enabled, "audioStoreAvailable": runtime.store.is_available(),
+        "debugAnalyzeEndpoint": settings.debug_analyze_endpoint_enabled})
+    if settings.debug_analyze_endpoint_enabled:
+        log.warning("DEBUG_ANALYZE_ENDPOINT_ENABLED=true: POST /debug/analyze accepts audio directly - "
+                   "do not enable this in a real deployment")
     app.state.runtime = runtime
     runtime.start()
     yield
     runtime.stop()
 
 
-app = FastAPI(title="Proctoring AI service", version="1.0.0", lifespan=lifespan, docs_url=None, redoc_url=None)
+_debug_enabled = get_settings().debug_analyze_endpoint_enabled
+app = FastAPI(title="Proctoring AI service", version="1.0.0", lifespan=lifespan,
+             docs_url="/docs" if _debug_enabled else None, redoc_url=None)
 app.include_router(health_router)
+if _debug_enabled:
+    app.include_router(debug_analyze_router)
 
 
 if __name__ == "__main__":

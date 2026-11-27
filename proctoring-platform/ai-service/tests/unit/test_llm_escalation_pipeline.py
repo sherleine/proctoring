@@ -111,10 +111,43 @@ def test_escalation_runs_and_tags_the_transcript_by_speaker_role(store_root):
     assert "(other): psst, it's paris" in prompt
 
 
-def test_escalation_is_not_attempted_without_a_review_flag(store_root):
+def test_escalation_still_runs_on_a_single_voice_clip(store_root):
+    """A conversation split across separate clips can look like "one voice" in each clip on its own, so a
+    single-speaker clip with speech still reaches the LLM - Tier 1 not flagging it is not reason to skip it."""
     single_speaker_clip = voice(3.0)
     single_result = DiarizationResult([(0.0, 3.0, "S1")], [], [sp("S1", [(0.0, 3.0)])])
     transcriber = Transcriber([(0.0, 3.0, "talking to myself")])
-    payload, _ = run(store_root, single_speaker_clip, single_result, transcriber, llm=FakeLlm(VALID_RESPONSE))
+    llm = FakeLlm(VALID_RESPONSE)
+    payload, _ = run(store_root, single_speaker_clip, single_result, transcriber, llm=llm)
+    assert "MULTIPLE_SPEAKERS_DETECTED" not in [o["observationType"] for o in payload["observations"]]
+    assert payload["aiReview"]["attempted"] is True
+    assert llm.calls
+
+
+def test_escalation_is_not_attempted_with_no_speech_at_all(store_root):
+    silent_clip = np.zeros(3 * SR, dtype=np.float32)
+    silent_result = DiarizationResult([], [], [])
+    llm = FakeLlm(VALID_RESPONSE)
+    payload, _ = run(store_root, silent_clip, silent_result, Transcriber([]), llm=llm)
     assert payload["aiReview"]["attempted"] is False
-    assert "no overlap/multiple-speaker flag" in payload["aiReview"]["reason"]
+    assert not llm.calls
+
+
+def test_a_manual_question_override_is_used_instead_of_the_session_provider(store_root):
+    """The debug/manual-upload endpoint passes a question directly; it must win over question_provider.get(),
+    and question_provider must not even be called in that case."""
+    transcriber = Transcriber([(0.0, 2.5, "what is the capital of france"), (2.5, 5.0, "psst, it's paris")])
+    llm = FakeLlm(VALID_RESPONSE)
+    data = wav_bytes(np.clip(CLIP, -1, 1))
+    sid, key = put_audio(store_root, data)
+    entry = event_entry(sid, key, data, duration=round(len(CLIP) / SR, 3))
+    provider = FakeQuestionProvider(None)  # would answer "no question known" if it were asked at all
+    pipeline = ProcessingPipeline(AudioStore(store_root), FakeVad(), transcriber, speaker(), FakeDiarizer(RESULT),
+                                 escalation_enabled=True, llm=llm, question_provider=provider)
+    payload = pipeline.process(parse_event_entry(entry),
+                               question_override=QuestionContext("What is the capital of France?")).to_payload()
+    assert validation_errors(ANALYSIS_RESULT, payload) == []
+    assert payload["aiReview"]["attempted"] is True
+    assert not provider.calls
+    (prompt, _schema), = llm.calls
+    assert "What is the capital of France?" in prompt

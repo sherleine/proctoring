@@ -14,8 +14,13 @@ What it returns (all times in seconds inside the clip):
     (natural pauses), pieces shorter than `min_turn_seconds` are dropped;
   * overlaps: regions where >= 2 speakers are active for at least `min_overlap_seconds`;
   * per speaker: total speech, exclusive (non-overlapping) speech and its level (for background-speech rules).
-A speaker counts only with >= `min_speaker_seconds` of speech. Clips longer than one 10 s window are split into
-windows by pyannote; local labels are per window (W1S1, W2S1, ...) and are linked later by the voice comparison.
+A speaker counts only with >= `min_speaker_seconds` of speech. Clips longer than one 10 s window are analysed by
+pyannote in OVERLAPPING windows (10 s long, ~1 s apart), so one stretch of speech is seen by up to ~10 windows, each
+with its own local speaker indices. Those are stitched into clip-level speakers: two local speakers of different
+windows are the same speaker when their activity agrees on the time both windows cover (two local speakers of the
+same window are never merged). Overlap is judged inside each window (>= 2 of that window's own speakers active at
+once, in most windows covering the moment) - never by counting the same voice seen by two windows as two people.
+Whether two stitched speakers have different voices is still checked afterwards with CAM++ embeddings.
 
 Privacy: telemetry is disabled in app/__init__.py before pyannote is imported; the model is loaded from the local
 cache with a pinned revision and works offline after the first download.
@@ -47,6 +52,8 @@ class DiarizationConfig:
     min_turn_seconds: float = 0.3
     merge_gap_seconds: float = 0.5   # pauses shorter than this inside one speaker's speech are closed
     min_overlap_seconds: float = 0.5
+    link_agreement: float = 0.5       # stitch two windows' local speakers when their shared-time activity agrees this much (IoU)
+    min_link_seconds: float = 0.3     # ... and both are active for at least this long in the shared time
 
 
 @dataclass
@@ -130,24 +137,77 @@ class DiarizationService:
     def _interpret(self, data: np.ndarray, windows, duration: float, samples: np.ndarray) -> DiarizationResult:
         cfg = self.config
         n_chunks, n_frames, n_local = data.shape
-        many = n_chunks > 1
         # Frame activity per (window, local speaker) on a common 10 ms grid over the clip.
         grid = 0.01
         n_grid = max(1, int(np.ceil(duration / grid)))
-        activity: dict[str, np.ndarray] = {}
+
+        def to_grid(active: np.ndarray, window) -> np.ndarray:
+            frame_step = window.duration / n_frames
+            track = np.zeros(n_grid, dtype=bool)
+            for f in np.flatnonzero(active):
+                t0 = window.start + f * frame_step
+                i0, i1 = int(t0 / grid), int(np.ceil((t0 + frame_step) / grid))
+                track[max(0, i0):min(n_grid, i1)] = True
+            return track
+
+        local: dict[tuple[int, int], np.ndarray] = {}   # (window, local speaker) -> grid track
+        coverage = np.zeros(n_grid, dtype=np.int16)      # how many windows cover each grid frame
+        overlap_votes = np.zeros(n_grid, dtype=np.int16)  # ... and how many of them see >= 2 speakers at once
+        spans: list[tuple[int, int]] = []
         for c in range(n_chunks):
             window = windows[c]
             frame_step = window.duration / n_frames
+            g0 = max(0, int(window.start / grid))
+            g1 = min(n_grid, int(np.ceil((window.start + window.duration) / grid)))
+            spans.append((g0, g1))
+            coverage[g0:g1] += 1
+            kept = []
             for k in range(n_local):
                 active = data[c, :, k] > cfg.activation
                 if active.sum() * frame_step < cfg.min_speaker_seconds:
                     continue
-                track = np.zeros(n_grid, dtype=bool)
-                for f in np.flatnonzero(active):
-                    t0 = window.start + f * frame_step
-                    i0, i1 = int(t0 / grid), int(np.ceil((t0 + frame_step) / grid))
-                    track[max(0, i0):min(n_grid, i1)] = True
-                activity[f"W{c + 1}:{k}" if many else str(k)] = track
+                local[(c, k)] = to_grid(active, window)
+                kept.append((c, k))
+            if len(kept) >= 2:
+                overlap_votes += (np.sum([local[key] for key in kept], axis=0) >= 2).astype(np.int16)
+
+        # Stitch local speakers across overlapping windows (union-find; at most one local speaker per window per group).
+        parent = {key: key for key in local}
+        members = {key: {key[0]} for key in local}
+
+        def find(key):
+            while parent[key] != key:
+                parent[key] = parent[parent[key]]
+                key = parent[key]
+            return key
+
+        min_link_frames = cfg.min_link_seconds / grid
+        links = []
+        keys = sorted(local)
+        for i, a in enumerate(keys):
+            for b in keys[i + 1:]:
+                if b[0] == a[0]:
+                    continue
+                lo, hi = max(spans[a[0]][0], spans[b[0]][0]), min(spans[a[0]][1], spans[b[0]][1])
+                if hi <= lo:
+                    continue
+                ta, tb = local[a][lo:hi], local[b][lo:hi]
+                if ta.sum() < min_link_frames or tb.sum() < min_link_frames:
+                    continue
+                iou = (ta & tb).sum() / max(1, (ta | tb).sum())
+                if iou >= cfg.link_agreement:
+                    links.append((iou, a, b))
+        for _, a, b in sorted(links, reverse=True):
+            ra, rb = find(a), find(b)
+            if ra == rb or members[ra] & members[rb]:
+                continue  # already one speaker, or merging would join two speakers of the same window
+            parent[rb] = ra
+            members[ra] |= members.pop(rb)
+
+        activity: dict[tuple[int, int], np.ndarray] = {}
+        for key, track in local.items():
+            root = find(key)
+            activity[root] = activity[root] | track if root in activity else track.copy()
 
         # Pause handling: close short gaps, drop very short pieces.
         def segments(track: np.ndarray) -> list[tuple[float, float]]:
@@ -162,21 +222,23 @@ class DiarizationService:
             return [(round(s, 3), round(e, 3)) for s, e in out if e - s >= cfg.min_turn_seconds]
 
         per_speaker = {key: segments(track) for key, track in activity.items()}
-        per_speaker = {k: v for k, v in per_speaker.items() if sum(e - s for s, e in v) >= cfg.min_speaker_seconds}
+        per_speaker = {k: v for k, v in per_speaker.items() if v and sum(e - s for s, e in v) >= cfg.min_speaker_seconds}
         # Anonymous labels in order of first appearance (never "candidate" by position).
         order = sorted(per_speaker, key=lambda k: per_speaker[k][0][0])
-        names = {key: (f"W{key.split(':')[0][1:]}S{i + 1}" if many else f"S{i + 1}") for i, key in enumerate(order)}
+        names = {key: f"S{i + 1}" for i, key in enumerate(order)}
 
         turns = sorted((s, e, names[k]) for k, segs in per_speaker.items() for s, e in segs)
-        # Overlap: >= 2 speakers active at once (on the cleaned turns).
+        # Overlap: most of the windows covering a moment see >= 2 of their own speakers active at once.
+        overlap_mask = (overlap_votes > 0) & (2 * overlap_votes >= np.maximum(coverage, 1))
+        overlaps = [(s, e) for s, e in segments(overlap_mask) if e - s >= cfg.min_overlap_seconds]
+        # Exclusive speech (used for each speaker's level) leaves out ANY moment two stitched speakers touch, too.
         count = np.zeros(n_grid, dtype=np.int8)
         for segs in per_speaker.values():
             for s, e in segs:
                 count[int(s / grid):int(np.ceil(e / grid))] += 1
-        overlaps = [(s, e) for s, e in segments(count >= 2) if e - s >= cfg.min_overlap_seconds]
+        overlap_mask |= count >= 2
 
         speakers = []
-        overlap_mask = count >= 2
         for key in order:
             segs = per_speaker[key]
             mask = np.zeros(n_grid, dtype=bool)
