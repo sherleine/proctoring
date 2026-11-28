@@ -38,11 +38,6 @@ public sealed class RedisConnection : IAsyncDisposable
             await _multiplexer.Value.Result.DisposeAsync();
     }
 
-    /// <summary>Redis client exceptions that mean "Redis is unavailable right now".</summary>
-    public static bool IsUnavailable(Exception ex) =>
-        ex is RedisConnectionException or RedisTimeoutException or TimeoutException
-        || (ex is RedisServerException server && server.Message.StartsWith("LOADING", StringComparison.Ordinal));
-
     /// <summary>Creates a consumer group starting at the first entry; "already exists" is success.</summary>
     public static async Task EnsureGroupAsync(IDatabase db, string stream, string group)
     {

@@ -34,8 +34,6 @@ public sealed partial class LocalFileAudioStore : IAudioStore
         Directory.CreateDirectory(_staging);
     }
 
-    public string RootDirectory => _root;
-
     public async Task<StagedAudio> StageAsync(Stream content, long maxBytes, CancellationToken ct)
     {
         var path = Path.Combine(_staging, $"{Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16))}.part");

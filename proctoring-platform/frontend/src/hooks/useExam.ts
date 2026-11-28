@@ -33,7 +33,7 @@ export interface ExamState {
   micId: string;
   /** Loudest level and highest speech probability of the last 5 s - for checking the microphone. */
   recent: { peakDbfs: number; peakProbability: number };
-  /** Pipeline health, shown on the page (and on window.__proctoringDiag for automated checks). */
+  /** Pipeline health, shown on the page. */
   diag: Diagnostics;
   events: LocalEvent[];
   errors: string[];
@@ -93,11 +93,7 @@ export function useExam() {
   const [state, setState] = useState<ExamState>(() => ({ ...initial, micId: savedMic() }));
   const patch = useCallback((p: Partial<ExamState>) => setState((s) => ({ ...s, ...p })), []);
   const addError = useCallback((message: string) => setState((s) => ({ ...s, errors: [...s.errors.filter((e) => e !== message), message] })), []);
-  const setDiag = useCallback((change: Partial<Diagnostics>) => setState((s) => {
-    const diag = { ...s.diag, ...change };
-    (window as unknown as { __proctoringDiag: Diagnostics }).__proctoringDiag = diag;
-    return { ...s, diag };
-  }), []);
+  const setDiag = useCallback((change: Partial<Diagnostics>) => setState((s) => ({ ...s, diag: { ...s.diag, ...change } })), []);
   const addNotice = useCallback((message: string) => setState((s) => ({ ...s, notices: [...s.notices.slice(-4), message] })), []);
 
   const refs = useRef({
@@ -149,7 +145,6 @@ export function useExam() {
     });
   }, [setDiag]);
 
-  // ------------------------------------------------------------------ backend status -> local events
 
   const applyRemote = useCallback(async (remote: EventStatusResponse) => {
     const store = refs.current.store;
@@ -183,7 +178,6 @@ export function useExam() {
     void updates.start();
   }, [addNotice, applyRemote, patch, resync]);
 
-  // ------------------------------------------------------------------ mount: storage, recovery after reload
 
   useEffect(() => {
     let cancelled = false;
@@ -215,7 +209,6 @@ export function useExam() {
     };
   }, [addError, patch, startUpdates, upsert]);
 
-  // ------------------------------------------------------------------ pipeline messages
 
   const onPipeline = useCallback((msg: PipelineEvent) => {
     const r = refs.current;
@@ -283,7 +276,6 @@ export function useExam() {
     }
   }, [addError, addNotice, patch, setDiag]);
 
-  // ------------------------------------------------------------------ devices
 
   const stopCapture = useCallback(async () => {
     const r = refs.current;
@@ -362,7 +354,6 @@ export function useExam() {
     }
   }
 
-  // ------------------------------------------------------------------ start / resume / end
 
   const start = useCallback(async () => {
     const r = refs.current;

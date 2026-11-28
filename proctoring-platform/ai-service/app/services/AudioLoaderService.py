@@ -1,4 +1,4 @@
-
+"""Reads a clip from the audio store (key, size and SHA-256 checked) and decodes it to float32 samples."""
 import hashlib
 import io
 import re
@@ -10,15 +10,15 @@ import soundfile as sf
 
 from app.core.errors import PermanentEventError
 from app.schemas.AudioEventSchema import AudioRef
+from app.utils.audio_utils import SAMPLE_RATE
 
 KEY_PATTERN = re.compile(r"^ses_[A-Za-z0-9]{20,36}/[a-f0-9]{32}\.wav$")
-SAMPLE_RATE = 16_000
 MAX_BYTES = 50_000_000
 
 
 @dataclass(frozen=True)
 class LoadedAudio:
-    samples: np.ndarray  
+    samples: np.ndarray
     sample_rate: int
 
     @property

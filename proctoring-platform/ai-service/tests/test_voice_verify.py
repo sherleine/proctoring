@@ -37,8 +37,8 @@ class FakePipeline:
     def set(self, distinct_voices, embedding, observations=()):
         self.distinct_voices, self.embedding, self.observations = distinct_voices, embedding, list(observations)
 
-    def analyse(self, message, wav):
-        assert message.examId and message.candidateId  # examid/emailid made it into the message
+    def analyse(self, wav, session_id, event_id, candidate_id):
+        assert candidate_id  # emailid reaches the pipeline as the candidate id
         return FakeResult(self.distinct_voices, self.observations), self.embedding
 
 
@@ -77,7 +77,7 @@ def test_the_full_example_table_across_repeated_requests():
     pipeline.set(1, B)                            # 3: Voice B -> violation, reference must NOT change
     assert post(client).json()["valid"] is False
     ref = runtime.voice_reference_store.get("EXAM_001", "candidate@example.com")
-    np.testing.assert_allclose(ref.embedding, A, atol=1e-6)
+    np.testing.assert_allclose(ref, A, atol=1e-6)
 
     pipeline.set(2, A)                            # 4: A + B together -> violation even though A matches
     assert post(client).json()["valid"] is False

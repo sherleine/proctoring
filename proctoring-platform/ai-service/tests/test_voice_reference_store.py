@@ -13,19 +13,17 @@ def test_get_returns_none_when_nothing_registered():
     assert VoiceReferenceStore(FakeRedis(), ttl_seconds=60).get("EXAM_001", "a@example.com") is None
 
 
-def test_register_then_get_round_trips_embedding_and_model_version():
+def test_register_then_get_round_trips_the_embedding():
     store = VoiceReferenceStore(FakeRedis(), ttl_seconds=60)
     assert store.register_if_absent("EXAM_001", "a@example.com", A, "campplus-test") is True
-    ref = store.get("EXAM_001", "a@example.com")
-    np.testing.assert_allclose(ref.embedding, A, atol=1e-6)
-    assert ref.model_version == "campplus-test" and ref.registered_at
+    np.testing.assert_allclose(store.get("EXAM_001", "a@example.com"), A, atol=1e-6)
 
 
 def test_second_register_is_a_no_op_and_keeps_the_first_voice():
     store = VoiceReferenceStore(FakeRedis(), ttl_seconds=60)
     store.register_if_absent("EXAM_001", "a@example.com", A, "m")
     assert store.register_if_absent("EXAM_001", "a@example.com", B, "m") is False
-    np.testing.assert_allclose(store.get("EXAM_001", "a@example.com").embedding, A, atol=1e-6)
+    np.testing.assert_allclose(store.get("EXAM_001", "a@example.com"), A, atol=1e-6)
 
 
 def test_references_are_independent_per_exam_and_email():
@@ -33,7 +31,7 @@ def test_references_are_independent_per_exam_and_email():
     store.register_if_absent("EXAM_001", "a@example.com", A, "m")
     assert store.register_if_absent("EXAM_001", "b@example.com", B, "m") is True
     assert store.register_if_absent("EXAM_002", "a@example.com", B, "m") is True
-    np.testing.assert_allclose(store.get("EXAM_001", "b@example.com").embedding, B, atol=1e-6)
+    np.testing.assert_allclose(store.get("EXAM_001", "b@example.com"), B, atol=1e-6)
 
 
 def test_key_format_and_ttl():

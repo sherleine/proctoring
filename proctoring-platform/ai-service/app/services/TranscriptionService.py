@@ -1,5 +1,7 @@
-
+"""faster-whisper transcription, with Whisper's own hallucination guard."""
 import logging
+import os
+import sys
 from dataclasses import dataclass
 
 import numpy as np
@@ -35,10 +37,7 @@ class TranscriptionData:
 
 
 def add_pip_cuda_libraries() -> None:
-    """On Windows, CTranslate2 needs cublas64_12.dll. The optional requirements-gpu.txt installs it as the
-    nvidia-cublas-cu12 wheel inside the venv; make that folder visible to the DLL loader (no system changes)."""
-    import os
-    import sys
+    """On Windows, CTranslate2 needs cublas64_12.dll. If the nvidia-cublas-cu12 wheel is installed in the venv, make that folder visible to the DLL loader (no system changes)."""
     if sys.platform != "win32":
         return
     try:
@@ -69,7 +68,6 @@ class TranscriptionService:
         self.compute_type = compute_type
         self.language = language
         self._workers = workers
-        # "translate" always yields English text, whatever language was spoken - see Settings.whisper_task.
         self.task = task
         self._model = None
 
@@ -91,7 +89,6 @@ class TranscriptionService:
             self.device = "cpu"
             if self.compute_type in ("float16", "int8_float16"):
                 self.compute_type = "int8"
-        # Downloaded once into the Hugging Face cache (HF_HOME), then reused.
         self._model = WhisperModel(self.model_size, device=self.device, compute_type=self.compute_type,
                                    num_workers=self._workers)
         log.info("Transcription model loaded", extra={"model": self.model_id, "device": self.device,

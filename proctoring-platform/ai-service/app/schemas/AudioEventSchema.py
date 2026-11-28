@@ -1,4 +1,4 @@
-
+"""The audio event message the Redis worker receives, validated against the stream contracts."""
 import json
 
 from pydantic import BaseModel
@@ -12,26 +12,20 @@ SUPPORTED_ENVELOPE_VERSION = "1"
 
 class AudioRef(BaseModel):
     storage: str
-    uri: str  
+    uri: str
     sha256: str
     sizeBytes: int
     contentType: str
-    key: str | None = None  
+    key: str | None = None
 
 
 class AudioEventMessage(BaseModel):
     """Envelope + payload of one event, after contract validation."""
-    messageId: str
     sessionId: str
     eventId: str
     candidateId: str
     examId: str
-    event: dict  
     audioRef: AudioRef
-
-    @property
-    def duration_seconds(self) -> float:
-        return float(self.event["durationSeconds"])
 
 
 def parse_event_entry(fields: dict[str, str]) -> AudioEventMessage:
@@ -55,6 +49,6 @@ def parse_event_entry(fields: dict[str, str]) -> AudioEventMessage:
         raise PermanentEventError("INVALID_MESSAGE", "Payload sessionId/eventId do not match the envelope")
     if not payload["audioRef"].get("key"):
         raise PermanentEventError("INVALID_MESSAGE", "audioRef.key is required by this service")
-    return AudioEventMessage(messageId=fields["messageId"], sessionId=fields["sessionId"], eventId=fields["eventId"],
+    return AudioEventMessage(sessionId=fields["sessionId"], eventId=fields["eventId"],
                              candidateId=payload["candidateId"], examId=payload["examId"],
-                             event=payload["event"], audioRef=AudioRef(**payload["audioRef"]))
+                             audioRef=AudioRef(**payload["audioRef"]))

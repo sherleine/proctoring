@@ -1,5 +1,4 @@
-
-
+"""One AnalysisResult -> {"valid", "reason"}: valid unless Tier 1 flagged it and Tier 2 did not clear it."""
 CLEARED_CLASSIFICATIONS = frozenset({"likely_benign_other"})
 
 

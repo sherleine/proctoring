@@ -1,9 +1,10 @@
-
+"""Redis Streams worker: reads audio events, runs the pipeline, publishes results, retries and dead-letters."""
 import logging
 import os
 import socket
 import threading
 import time
+import uuid
 
 import redis
 
@@ -29,8 +30,6 @@ class EventWorker:
         self.max_deliveries = max_deliveries
         self.state = "starting"
         self._next_claim = 0.0
-
-    # ------------------------------------------------------------------ loop
 
     def run(self, stop: threading.Event) -> None:
         group_ready = False
@@ -64,39 +63,34 @@ class EventWorker:
         self.state = "stopped"
         log.info("Worker stopped", extra={"consumer": self.consumer})
 
-    def run_once(self, block_ms: int = 2000) -> int:
+    def run_once(self, block_ms: int = 2000) -> None:
         """Reclaims stale entries (every CLAIM_INTERVAL_SECONDS) and handles at most one new entry."""
-        handled = 0
         if time.monotonic() >= self._next_claim:
             self._next_claim = time.monotonic() + CLAIM_INTERVAL_SECONDS
             for entry_id, fields in self.streams.claim_stale(self.consumer):
                 self.handle(entry_id, fields, self.streams.delivery_count(entry_id))
-                handled += 1
         for entry_id, fields in self.streams.read_new(self.consumer, block_ms):
             self.handle(entry_id, fields, 1)
-            handled += 1
-        return handled
 
-    # ------------------------------------------------------------------ one entry
-
-    def handle(self, entry_id: str, fields: dict, delivery_count: int) -> str:
-        """Returns what happened (for logs and tests): completed / failed / duplicate / retry / dead-lettered."""
+    def handle(self, entry_id: str, fields: dict, delivery_count: int) -> None:
         context = {"entryId": entry_id, "eventId": fields.get("eventId"), "sessionId": fields.get("sessionId"),
                    "deliveryCount": delivery_count}
         try:
             message = parse_event_entry(fields)
         except PermanentEventError as exc:
             log.warning("Invalid event message", extra={**context, "code": exc.code})
-            return self._dead_letter(entry_id, fields, f"{exc.code}: {exc.message}", delivery_count, candidate_id="")
+            self._dead_letter(entry_id, fields, f"{exc.code}: {exc.message}", delivery_count, candidate_id="")
+            return
 
         if delivery_count > self.max_deliveries:
-            return self._dead_letter(entry_id, fields, f"delivered {delivery_count} times (limit {self.max_deliveries})",
-                                     delivery_count, candidate_id=message.candidateId)
+            self._dead_letter(entry_id, fields, f"delivered {delivery_count} times (limit {self.max_deliveries})",
+                              delivery_count, candidate_id=message.candidateId)
+            return
 
         if self.streams.already_processed(message.sessionId, message.eventId):
             self.streams.ack(entry_id)
             log.info("Duplicate delivery acknowledged without reprocessing", extra=context)
-            return "duplicate"
+            return
 
         self.streams.publish_result(envelope(STARTED, message.sessionId, message.eventId,
                                              started_payload(message.sessionId, message.eventId, delivery_count, self.consumer)))
@@ -108,13 +102,13 @@ class EventWorker:
                                    retryable=False, delivery_count=delivery_count)
         except TransientEventError as exc:
             if delivery_count >= self.max_deliveries:
-                return self._dead_letter(entry_id, fields, f"PROCESSING_FAILED: {exc}", delivery_count,
-                                         candidate_id=message.candidateId)
-            log.warning("Processing failed; the entry will be retried", extra={**context, "reason": str(exc)})
-            return "retry"  # not acknowledged: comes back via XAUTOCLAIM after AI_CLAIM_IDLE_MS
+                self._dead_letter(entry_id, fields, f"PROCESSING_FAILED: {exc}", delivery_count,
+                                  candidate_id=message.candidateId)
+            else:  # not acknowledged: comes back via XAUTOCLAIM after AI_CLAIM_IDLE_MS
+                log.warning("Processing failed; the entry will be retried", extra={**context, "reason": str(exc)})
+            return
 
         self._publish_final(entry_id, result)
-        return result.status
 
     def _publish_final(self, entry_id: str, result: AnalysisResult) -> None:
         self.streams.publish_result(envelope(result.message_type, result.sessionId, result.eventId, result.to_payload()))
@@ -122,7 +116,7 @@ class EventWorker:
         self.streams.ack(entry_id)
         log.info("Result published", extra={"entryId": entry_id, "eventId": result.eventId, "status": result.status})
 
-    def _dead_letter(self, entry_id: str, fields: dict, reason: str, delivery_count: int, candidate_id: str) -> str:
+    def _dead_letter(self, entry_id: str, fields: dict, reason: str, delivery_count: int, candidate_id: str) -> None:
         self.streams.dead_letter(entry_id, fields, reason, delivery_count)
         session_id, event_id = fields.get("sessionId"), fields.get("eventId")
         if _usable_ids(session_id, event_id):
@@ -133,11 +127,9 @@ class EventWorker:
             self.streams.mark_processed(session_id, event_id)
         self.streams.ack(entry_id)
         log.warning("Entry dead-lettered", extra={"entryId": entry_id, "eventId": event_id, "reason": reason[:200]})
-        return "dead-lettered"
 
 
 def _usable_ids(session_id: str | None, event_id: str | None) -> bool:
-    import uuid
     if not session_id or not event_id:
         return False
     try:

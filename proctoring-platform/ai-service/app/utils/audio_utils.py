@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
-TARGET_SAMPLE_RATE = 16_000
+SAMPLE_RATE = 16_000  # every model and the stored WAV files use 16 kHz mono
 
 SILENCE_FLOOR_DBFS = -120.0  # reported instead of -infinity for digital silence (JSON has no infinity)
 QUIET_PEAK_DBFS = -30.0  # quieter recordings are amplified (in memory only) before the models see them
@@ -27,6 +27,12 @@ def peak_dbfs(samples: np.ndarray) -> float:
 
 def rms_dbfs(samples: np.ndarray) -> float:
     return to_dbfs(float(np.sqrt(np.mean(np.square(samples, dtype=np.float64))))) if samples.size else SILENCE_FLOOR_DBFS
+
+
+def slice_spans(samples: np.ndarray, spans: list[tuple[float, float]]) -> np.ndarray:
+    """The samples inside the given (start, end) second spans, joined; empty when there are none."""
+    pieces = [samples[int(a * SAMPLE_RATE):int(b * SAMPLE_RATE)] for a, b in spans]
+    return np.concatenate(pieces).astype(np.float32) if pieces else np.zeros(0, np.float32)
 
 
 def clipped_ratio(samples: np.ndarray, limit: float = 0.999) -> float:
@@ -51,7 +57,7 @@ def needs_conversion(data: bytes, filename: str) -> bool:
         info = sf.info(io.BytesIO(data))
     except Exception:
         return True
-    return info.samplerate != TARGET_SAMPLE_RATE or info.channels != 1 or info.subtype != "PCM_16"
+    return info.samplerate != SAMPLE_RATE or info.channels != 1 or info.subtype != "PCM_16"
 
 
 def to_16k_mono_wav(data: bytes, filename: str) -> bytes:
@@ -62,17 +68,9 @@ def to_16k_mono_wav(data: bytes, filename: str) -> bytes:
         src, dst = Path(tmp) / f"input{suffix}", Path(tmp) / "output.wav"
         src.write_bytes(data)
         try:
-            subprocess.run(["ffmpeg", "-y", "-i", str(src), "-ar", str(TARGET_SAMPLE_RATE), "-ac", "1", "-f", "wav", str(dst)],
+            subprocess.run(["ffmpeg", "-y", "-i", str(src), "-ar", str(SAMPLE_RATE), "-ac", "1", "-f", "wav", str(dst)],
                            check=True, capture_output=True, timeout=120)
         except subprocess.CalledProcessError as exc:
             detail = exc.stderr.decode(errors="replace")[-500:] if exc.stderr else str(exc)
             raise ValueError(f"Could not decode the uploaded file as audio/video: {detail}") from exc
         return dst.read_bytes()
-
-
-def wav_duration_seconds(data: bytes) -> float:
-    """Raises ValueError when the bytes are not a readable WAV."""
-    try:
-        return sf.info(io.BytesIO(data)).duration
-    except Exception as exc:
-        raise ValueError(f"Uploaded file is not valid audio: {exc}") from exc

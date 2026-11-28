@@ -34,8 +34,6 @@ public sealed class JsonSchemaContractValidator : IContractValidator
         if (_schemas.Count == 0) throw new InvalidOperationException($"No schemas in {schemaDirectory}");
     }
 
-    public IReadOnlyCollection<string> SchemaNames => _schemas.Keys;
-
     public IReadOnlyDictionary<string, string[]> Validate(string schemaFileName, JsonNode? document)
     {
         if (!_schemas.TryGetValue(schemaFileName, out var schema))

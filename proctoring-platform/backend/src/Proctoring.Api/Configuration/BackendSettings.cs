@@ -51,14 +51,14 @@ public static class SettingsRegistration
         var errors = new List<string>();
 
         var backend = new BackendSettings();
-        Bind(config, "DATABASE_PATH", v => backend.DatabasePath = v, errors);
+        Bind(config, "DATABASE_PATH", v => backend.DatabasePath = v);
         BindParsed<bool>(config, "DATABASE_MIGRATE_ON_START", bool.TryParse, v => backend.MigrateOnStart = v, errors);
-        Bind(config, "CORS_ORIGINS", v => backend.CorsOrigins = v.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), errors);
-        Bind(config, "CONTRACTS_SCHEMA_DIR", v => backend.ContractsSchemaDirectory = v, errors);
-        Bind(config, "LOG_FORMAT", v => backend.LogFormat = v.ToLowerInvariant(), errors);
-        Bind(config, "AUDIO_STORE_PATH", v => backend.AudioStorePath = v, errors);
-        Bind(config, "QUEUE_PROVIDER", v => backend.QueueProvider = v.ToLowerInvariant(), errors);
-        Bind(config, "QUEUE_LOCAL_DIRECTORY", v => backend.QueueLocalDirectory = v, errors);
+        Bind(config, "CORS_ORIGINS", v => backend.CorsOrigins = v.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        Bind(config, "CONTRACTS_SCHEMA_DIR", v => backend.ContractsSchemaDirectory = v);
+        Bind(config, "LOG_FORMAT", v => backend.LogFormat = v.ToLowerInvariant());
+        Bind(config, "AUDIO_STORE_PATH", v => backend.AudioStorePath = v);
+        Bind(config, "QUEUE_PROVIDER", v => backend.QueueProvider = v.ToLowerInvariant());
+        Bind(config, "QUEUE_LOCAL_DIRECTORY", v => backend.QueueLocalDirectory = v);
 
         var events = new AudioEventOptions();
         BindParsed<double>(config, "AUDIO_MIN_DURATION_SECONDS", TryDouble, v => events.MinDurationSeconds = v, errors);
@@ -82,21 +82,21 @@ public static class SettingsRegistration
         if (backend.QueueProvider == "redis-streams")
         {
             redis = new RedisSettings();
-            Bind(config, "REDIS_CONNECTION", v => redis.Connection = v, errors);
-            Bind(config, "REDIS_USER", v => redis.User = v, errors);
-            Bind(config, "REDIS_PASSWORD", v => redis.Password = v, errors);
+            Bind(config, "REDIS_CONNECTION", v => redis.Connection = v);
+            Bind(config, "REDIS_USER", v => redis.User = v);
+            Bind(config, "REDIS_PASSWORD", v => redis.Password = v);
             BindParsed<bool>(config, "REDIS_SSL", bool.TryParse, v => redis.Ssl = v, errors);
             BindParsed<int>(config, "REDIS_CONNECT_TIMEOUT_MS", int.TryParse, v => redis.ConnectTimeoutMs = v, errors);
             BindParsed<int>(config, "REDIS_OPERATION_TIMEOUT_MS", int.TryParse, v => redis.OperationTimeoutMs = v, errors);
-            Bind(config, "REDIS_EVENTS_STREAM", v => redis.EventsStream = v, errors);
-            Bind(config, "REDIS_DLQ_STREAM", v => redis.EventsDlqStream = v, errors);
-            Bind(config, "REDIS_RESULTS_STREAM", v => redis.ResultsStream = v, errors);
-            Bind(config, "REDIS_RESULTS_DLQ_STREAM", v => redis.ResultsDlqStream = v, errors);
-            Bind(config, "REDIS_AI_GROUP", v => redis.AiGroup = v, errors);
+            Bind(config, "REDIS_EVENTS_STREAM", v => redis.EventsStream = v);
+            Bind(config, "REDIS_DLQ_STREAM", v => redis.EventsDlqStream = v);
+            Bind(config, "REDIS_RESULTS_STREAM", v => redis.ResultsStream = v);
+            Bind(config, "REDIS_RESULTS_DLQ_STREAM", v => redis.ResultsDlqStream = v);
+            Bind(config, "REDIS_AI_GROUP", v => redis.AiGroup = v);
             BindParsed<bool>(config, "REDIS_CREATE_AI_GROUP", bool.TryParse, v => redis.CreateAiGroup = v, errors);
-            Bind(config, "REDIS_BACKEND_GROUP", v => redis.BackendGroup = v, errors);
+            Bind(config, "REDIS_BACKEND_GROUP", v => redis.BackendGroup = v);
             BindParsed<int>(config, "REDIS_STREAM_MAXLEN", int.TryParse, v => redis.StreamMaxLength = v, errors);
-            Bind(config, "REDIS_UPDATES_CHANNEL", v => redis.UpdatesChannel = v, errors);
+            Bind(config, "REDIS_UPDATES_CHANNEL", v => redis.UpdatesChannel = v);
             BindParsed<bool>(config, "RESULTS_CONSUMER_ENABLED", bool.TryParse, v => redis.ResultsConsumerEnabled = v, errors);
             BindParsed<int>(config, "RESULTS_CLAIM_IDLE_MS", int.TryParse, v => redis.ClaimIdleMs = v, errors);
             BindParsed<int>(config, "RESULTS_CLAIM_INTERVAL_MS", int.TryParse, v => redis.ClaimIntervalMs = v, errors);
@@ -186,7 +186,7 @@ public static class SettingsRegistration
 
     private static bool TryDouble(string s, out double v) => double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out v);
 
-    private static void Bind(IConfiguration config, string key, Action<string> set, List<string> errors)
+    private static void Bind(IConfiguration config, string key, Action<string> set)
     {
         var value = config[key];
         if (!string.IsNullOrWhiteSpace(value)) set(value.Trim());

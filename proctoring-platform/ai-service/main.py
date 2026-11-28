@@ -1,12 +1,7 @@
-"""Service entry point: creates the FastAPI app, mounts the routers from app/__init__.py, and holds the
-Runtime (clients, models, Redis worker threads). Swagger at /docs when DEBUG_ANALYZE_ENDPOINT_ENABLED=true.
+"""Service entry point: creates the FastAPI app, mounts the routers and holds the Runtime (clients, models,
+Redis worker threads). Models load in a background thread, so /health/live answers immediately.
 
-    uvicorn main:app --port 8090        (or: python main.py)
-
-Startup: configure logging -> load Silero VAD and faster-whisper once (background thread, so /health/live
-answers immediately) -> start AI_WORKER_CONCURRENCY worker threads. The same pipeline (VAD + diarization +
-ASR + Tier 2 LLM review) serves both audio arriving through Redis and direct uploads to /voice/verify, which
-additionally matches the clip's voice against the candidate's registered reference.
+    uvicorn main:app --port 8090
 """
 import logging
 import threading
@@ -36,7 +31,6 @@ class Runtime:
     """Everything the process holds: settings, Redis client, models, workers."""
 
     def __init__(self, settings: Settings):
-        self.settings = settings
         self.streams = get_redis_streams()
         self.store = AudioStore(settings.audio_root)
         self.vad = VadService(settings.vad_threshold)
@@ -56,7 +50,6 @@ class Runtime:
             token=settings.hf_token.get_secret_value() if settings.hf_token else None,
         ) if settings.diarization_enabled else None
         self.llm = get_llm_client()
-        # Shared by the pipeline and the voice-match decision in app/api/voice_verify.py - same thresholds everywhere.
         self.rules = RulesConfig(overlap_min_seconds=settings.overlap_min_seconds, multiple_from_overlap=settings.multiple_from_overlap,
                                  background_level_db=settings.background_level_db,
                                  assistance_min_indicators=settings.assistance_min_indicators,
@@ -66,7 +59,7 @@ class Runtime:
         self.voice_reference_store = VoiceReferenceStore(self.streams.client, settings.voice_reference_ttl_seconds)
         self.pipeline = ProcessingPipeline(
             self.store, self.vad, self.transcriber, self.speaker, self.diarizer, settings.diarization_min_speech_seconds,
-            self.rules, self.scale, escalation_enabled=settings.escalation_enabled, llm=self.llm)
+            self.rules, self.scale, llm=self.llm)
         base = settings.consumer_name or default_consumer_name()
         self.workers = [EventWorker(self.streams, self.pipeline,
                                     base if settings.worker_concurrency == 1 else f"{base}-{i + 1}",
@@ -88,7 +81,7 @@ class Runtime:
                 self.diarizer.load()
             if self.transcriber:
                 self.transcriber.load()
-        except Exception as exc:  # the API stays up and reports not-ready with the reason
+        except Exception as exc:  # the API stays up; /health/ready reports the reason
             self.model_error = f"Model loading failed ({type(exc).__name__})"
             log.exception("Model loading failed; the worker will not start")
             return

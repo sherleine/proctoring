@@ -1,6 +1,4 @@
-
-from __future__ import annotations
-
+"""CAM++ voice embeddings (sherpa-onnx), used to tell whether two speakers are the same voice."""
 import hashlib
 import logging
 import threading
@@ -9,9 +7,9 @@ from pathlib import Path
 import numpy as np
 
 from app.core.errors import TransientEventError
+from app.utils.audio_utils import SAMPLE_RATE
 
 log = logging.getLogger(__name__)
-SAMPLE_RATE = 16_000
 
 
 class SpeakerService:

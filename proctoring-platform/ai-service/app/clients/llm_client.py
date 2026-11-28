@@ -4,6 +4,8 @@ import logging
 from functools import lru_cache
 from typing import Protocol
 
+import httpx
+
 from app.config import get_settings
 
 log = logging.getLogger(__name__)
@@ -53,7 +55,6 @@ class VllmClient:
         raise last_error  # type: ignore[misc]
 
     def _complete_once(self, prompt: str, schema: dict, temperature: float) -> dict:
-        import httpx
         body = {
             "model": self.model,
             "messages": [{"role": "user", "content": f"{prompt}\nJSON schema of the answer: "

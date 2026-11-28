@@ -1,7 +1,8 @@
-
+"""pyannote speaker segmentation -> anonymous speaker turns, overlaps and each speaker's exclusive speech."""
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,9 +10,9 @@ from pathlib import Path
 import numpy as np
 
 from app.core.errors import TransientEventError
+from app.utils.audio_utils import SAMPLE_RATE, slice_spans
 
 log = logging.getLogger(__name__)
-SAMPLE_RATE = 16_000
 
 
 @dataclass(frozen=True)
@@ -72,13 +73,10 @@ class DiarizationService:
         return self._pipeline is not None
 
     def load(self) -> None:
-        import os
-
         if self.config.cache_dir is not None:
             os.environ.setdefault("HF_HOME", str(self.config.cache_dir))
         if self.config.offline:
             os.environ["HF_HUB_OFFLINE"] = "1"
-        os.environ["PYANNOTE_METRICS_ENABLED"] = "false"  # again, in case app/__init__ was bypassed
         import torch
         from pyannote.audio import Pipeline
 
@@ -88,11 +86,9 @@ class DiarizationService:
             raise RuntimeError("diarization model could not be loaded (gated model: accept its conditions and set HF_TOKEN)")
         pipeline.to(torch.device("cpu"))
         self._pipeline = pipeline
-        self._token = None  # not needed any more once loaded
+        self._token = None
         log.info("Diarization model loaded", extra={"model": self.config.model, "revision": self.config.revision,
                                                     "offline": self.config.offline, "device": "cpu"})
-
-    # ------------------------------------------------------------------ inference
 
     def diarize(self, samples: np.ndarray) -> DiarizationResult:
         if self._pipeline is None:
@@ -220,8 +216,7 @@ class DiarizationService:
                 mask[int(s / grid):int(np.ceil(e / grid))] = True
             exclusive_mask = mask & ~overlap_mask
             exclusive = segments(exclusive_mask)
-            pieces = [samples[int(s * SAMPLE_RATE):int(e * SAMPLE_RATE)] for s, e in exclusive]
-            audio = np.concatenate(pieces) if pieces else np.zeros(0, np.float32)
+            audio = slice_spans(samples, exclusive)
             rms = float(np.sqrt(np.mean(np.square(audio, dtype=np.float64)))) if len(audio) else 0.0
             speakers.append(SpeakerInfo(
                 label=names[key], speech_seconds=float(mask.sum() * grid),

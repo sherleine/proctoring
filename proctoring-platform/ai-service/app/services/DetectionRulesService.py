@@ -1,4 +1,4 @@
-
+"""Tier 1 rules: speaker roles, distinct voices and the clip-level observations."""
 from __future__ import annotations
 
 import re

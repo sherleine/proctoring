@@ -1,7 +1,8 @@
-
+"""Clip-level findings: speech present or not, and unusual audio (clipped or very quiet)."""
 from app.schemas.AnalysisResultSchema import Finding
 from app.services.TranscriptionService import TranscriptionData
 from app.services.VadService import VadResult
+from app.utils.audio_utils import SILENCE_FLOOR_DBFS
 
 CLIPPING_RATIO = 0.01  # >= 1 % of samples at full scale
 VERY_QUIET_RMS_DBFS = -50.0
@@ -34,7 +35,7 @@ def analyse(vad: VadResult, transcription: TranscriptionData | None, rms_dbfs: f
             type="UNUSUAL_AUDIO", severity="info",
             description="The recording is clipped (too loud); transcription quality may be reduced.",
             start=None, end=None, evidence={"clippedRatio": round(clipped_ratio, 4), "peakDbfs": peak_dbfs}))
-    elif peak_dbfs > -120.0 and rms_dbfs < VERY_QUIET_RMS_DBFS:
+    elif peak_dbfs > SILENCE_FLOOR_DBFS and rms_dbfs < VERY_QUIET_RMS_DBFS:
         findings.append(Finding(
             type="UNUSUAL_AUDIO", severity="info",
             description="The recording is very quiet; speech detection and transcription may be less reliable.",

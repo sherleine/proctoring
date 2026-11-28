@@ -31,7 +31,7 @@ function EventRow({ event, now, onRetry }: { event: LocalEvent; now: number; onR
         {event.video && <button className="link" onClick={() => setShowVideo((v) => !v)}>{showVideo ? "Hide video" : "Show video"}</button>}
       </div>
       {videoUrl && <video className="clip" src={videoUrl} controls />}
-      <ObservationList result={event.result} eventStartedAt={event.startedAt} />
+      <ObservationList result={event.result} />
       {transcript?.available && transcript.text && <blockquote className="transcript">“{transcript.text}”</blockquote>}
     </li>
   );

@@ -13,18 +13,13 @@ observations -> Tier 2 LLM review when enabled) answers both questions at once:
 
 The clip is valid only if both pass; the reason lists every check that failed.
 """
-import json
 import logging
-import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
-from hashlib import sha256
 
 import numpy as np
 import redis
 
 from app.core.errors import AudioToolMissingError, InvalidAudioError, ServiceUnavailableError
-from app.schemas.AudioEventSchema import AudioEventMessage, parse_event_entry
 from app.services.ReviewSummaryService import summarize
 from app.utils import audio_utils
 
@@ -37,8 +32,9 @@ VALID_REGISTERED = "First valid request for this exam/candidate: this voice is n
 VALID_MATCH = "Voice matches the registered reference voice for this exam."
 
 
-def decide(distinct_voices: int | None, embedding: np.ndarray | None, reference, same_threshold: float) -> dict:
-    """Pure decision, never touches storage. reference: a ReferenceVoice, or None if nothing is registered yet.
+def decide(distinct_voices: int | None, embedding: np.ndarray | None, reference: np.ndarray | None,
+           same_threshold: float) -> dict:
+    """Pure decision, never touches storage. reference: the registered embedding, or None if nothing is registered.
     Returns {"valid": bool, "reason": str, "register": bool}; the caller registers only when "register" is true,
     so a race between two "first" requests is resolved by the store's atomic SET NX, not by this logic."""
     if not distinct_voices or embedding is None:
@@ -47,45 +43,11 @@ def decide(distinct_voices: int | None, embedding: np.ndarray | None, reference,
         return {"valid": False, "reason": VIOLATION_MULTIPLE, "register": False}
     if reference is None:
         return {"valid": True, "reason": VALID_REGISTERED, "register": True}
-    similarity = float(embedding @ reference.embedding)
+    similarity = float(embedding @ reference)
     if similarity >= same_threshold:
         return {"valid": True, "reason": VALID_MATCH, "register": False}
     return {"valid": False, "reason": f"{VIOLATION_MISMATCH} (similarity {similarity:.3f}, threshold {same_threshold:.3f})",
             "register": False}
-
-
-def _iso(dt: datetime) -> str:
-    return dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-
-
-def _build_message(exam_id: str, email_id: str, audio_bytes: bytes, duration_seconds: float) -> AudioEventMessage:
-    """Wraps the upload in the same validated event message the Redis worker receives, so the pipeline runs
-    unchanged. Nothing is written to the audio store: the bytes are analysed in memory."""
-    session_id = "ses_" + "".join(secrets.choice("0123456789ABCDEFGHJKMNPQRSTVWXYZ") for _ in range(26))
-    event_id = str(uuid.uuid4())
-    digest = sha256(audio_bytes).hexdigest()
-    key = f"{session_id}/{secrets.token_hex(16)}.wav"
-    start = datetime.now(timezone.utc)
-    payload = {
-        "sessionId": session_id, "candidateId": email_id, "examId": exam_id,
-        "event": {
-            "schemaVersion": "1.0", "eventId": event_id, "eventType": "speech", "sequenceNumber": 0,
-            "part": {"groupId": str(uuid.uuid4()), "index": 0, "isFinal": True, "overlapSeconds": 0},
-            "startedAt": _iso(start), "endedAt": _iso(start + timedelta(seconds=duration_seconds)),
-            "speechStartedAt": _iso(start), "durationSeconds": round(duration_seconds, 3), "preEventSeconds": 0,
-            "trigger": {"type": "vad", "model": "manual-upload", "startThreshold": 0.5, "endThreshold": 0.35,
-                        "maxProbability": 1.0, "speechSeconds": round(duration_seconds, 3), "noiseFloorDbfs": -60.0},
-            "audio": {"format": "wav", "codec": "pcm_s16le", "sampleRate": audio_utils.TARGET_SAMPLE_RATE,
-                      "channels": 1, "sizeBytes": len(audio_bytes), "sha256": digest},
-            "video": {"recordedLocally": False, "uploaded": False},
-        },
-        "audioRef": {"storage": "file", "uri": f"file:///voice-verify/{key}", "sha256": digest,
-                     "sizeBytes": len(audio_bytes), "contentType": "audio/wav", "key": key},
-    }
-    entry = {"messageType": "audio.event.submitted", "schemaVersion": "1", "messageId": str(uuid.uuid4()),
-             "correlationId": event_id, "sessionId": session_id, "eventId": event_id,
-             "producedAt": _iso(datetime.now(timezone.utc)), "payload": json.dumps(payload)}
-    return parse_event_entry(entry)
 
 
 def _check_voice(runtime, exam_id: str, email_id: str, distinct_voices, embedding) -> dict:
@@ -99,8 +61,8 @@ def _check_voice(runtime, exam_id: str, email_id: str, distinct_voices, embeddin
 
 
 def verify(runtime, exam_id: str, email_id: str, raw: bytes, filename: str, verbose: bool = False) -> dict:
-    """Raises InvalidAudioError (bad upload), AudioToolMissingError (no ffmpeg), ServiceUnavailableError
-    (model off / Redis down), and lets the pipeline's PermanentEventError/TransientEventError through."""
+    """Raises InvalidAudioError, AudioToolMissingError, ServiceUnavailableError, and lets the pipeline's
+    PermanentEventError/TransientEventError through. Nothing is written to disk: the upload is analysed in memory."""
     if runtime.diarizer is None or runtime.speaker is None:
         raise ServiceUnavailableError("Voice verification needs diarization and the speaker model both enabled "
                                       "(DIARIZATION_ENABLED, speaker model) - at least one is off")
@@ -108,15 +70,13 @@ def verify(runtime, exam_id: str, email_id: str, raw: bytes, filename: str, verb
         raise InvalidAudioError("voice file is empty")
     try:
         wav_bytes = audio_utils.to_16k_mono_wav(raw, filename) if audio_utils.needs_conversion(raw, filename) else raw
-        duration_seconds = audio_utils.wav_duration_seconds(wav_bytes)
     except FileNotFoundError as exc:
         raise AudioToolMissingError("ffmpeg is not installed / not on PATH - install ffmpeg to accept uploads here, "
                                     "or upload a 16 kHz mono PCM16 .wav directly") from exc
     except ValueError as exc:
         raise InvalidAudioError(str(exc)) from exc
 
-    message = _build_message(exam_id, email_id, wav_bytes, duration_seconds)
-    result, main_embedding = runtime.pipeline.analyse(message, wav_bytes)
+    result, main_embedding = runtime.pipeline.analyse(wav_bytes, f"ses_{uuid.uuid4().hex}", str(uuid.uuid4()), email_id)
     payload = result.to_payload()
     try:
         voice_check = _check_voice(runtime, exam_id, email_id, result.diarization.distinctVoices, main_embedding)

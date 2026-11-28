@@ -1,4 +1,4 @@
-
+"""Silero VAD: which parts of a clip contain speech."""
 import logging
 import threading
 import warnings
@@ -8,9 +8,9 @@ from importlib.metadata import version
 import numpy as np
 
 from app.core.errors import TransientEventError
+from app.utils.audio_utils import SAMPLE_RATE
 
 log = logging.getLogger(__name__)
-SAMPLE_RATE = 16_000
 MIN_SPEECH_SECONDS = 0.25  # less than this in total is reported as "no verified speech"
 
 

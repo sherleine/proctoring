@@ -7,8 +7,8 @@ export interface ReviewSummary {
   reason: string;
 }
 
-/** Same {valid, reason} as the AI service's POST /analyze (Swagger) - a port of
- *  ai-service/app/services/review_summary.py; keep the two in step. */
+/** Same {valid, reason} as the AI service's POST /voice/verify proctoring check - a port of
+ *  ai-service/app/services/ReviewSummaryService.py; keep the two in step. */
 export function summarize(result: AnalysisResult): ReviewSummary {
   const flags = (result.observations ?? []).filter((o) => o.category === "review").map((o) => o.observationType as string);
   const aiReview = result.aiReview ?? null;
@@ -37,7 +37,7 @@ export function summarize(result: AnalysisResult): ReviewSummary {
   return { valid: false, reason: `${flaggedBy} Tier 2 review was not run (${aiReview?.reason ?? "unknown reason"}).` };
 }
 
-export function ObservationList({ result }: { result: AnalysisResult | null; eventStartedAt?: string }) {
+export function ObservationList({ result }: { result: AnalysisResult | null }) {
   if (!result || result.status !== "completed") return null;
   const { valid, reason } = summarize(result);
   return (

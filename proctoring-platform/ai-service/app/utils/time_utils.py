@@ -1,3 +1,4 @@
+"""Timestamp helper."""
 from datetime import datetime, timezone
 
 

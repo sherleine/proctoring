@@ -22,9 +22,9 @@ async def verify(request: Request, examid: str = Form(...), emailid: str = Form(
                                          verbose)
     except InvalidAudioError as exc:
         raise HTTPException(400, str(exc))
+    except PermanentEventError as exc:  # the upload decoded to something that is not usable audio
+        raise HTTPException(400, f"{exc.code}: {exc.message}")
     except AudioToolMissingError as exc:
         raise HTTPException(500, str(exc))
-    except PermanentEventError as exc:
-        raise HTTPException(422, f"{exc.code}: {exc.message}")
     except (ServiceUnavailableError, TransientEventError) as exc:
         raise HTTPException(503, str(exc))

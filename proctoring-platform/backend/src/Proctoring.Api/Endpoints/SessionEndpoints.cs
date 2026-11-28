@@ -4,12 +4,10 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using Proctoring.Api.Configuration;
 using Proctoring.Api.Errors;
-using Proctoring.Application.Errors;
 using Proctoring.Application.Sessions;
 using Proctoring.Application.Validation;
 using Proctoring.Contracts.Errors;
 using Proctoring.Contracts.Sessions;
-using Proctoring.Infrastructure.Security;
 
 namespace Proctoring.Api.Endpoints;
 

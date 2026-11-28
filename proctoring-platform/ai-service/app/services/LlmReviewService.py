@@ -66,10 +66,7 @@ def validate_review(payload: object) -> dict | None:
 
 def review_clip(*, tagged_segments: list[dict], observation_types: list[str], diarization_summary: dict,
                 llm: LlmClient) -> dict:
-    """The orchestration for one clip's Tier 2 escalation. Every clip with transcribable speech is reviewed,
-    whatever Tier 1 found in that clip alone - two halves of a conversation in separate clips can each look
-    like "one voice" on their own. Always returns a dict with at least "attempted"; never raises -
-    a failure anywhere downgrades to "attempted but inconclusive", never to silence."""
+    """Never raises: a failed or invalid LLM answer becomes "attempted" with an inconclusive fallback review."""
     if not any(seg["text"].strip() for seg in tagged_segments):
         log.debug("Escalation skipped: no transcribable speech in this clip",
                  extra={"observationTypes": observation_types})
