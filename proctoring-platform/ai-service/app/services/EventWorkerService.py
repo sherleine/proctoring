@@ -9,9 +9,9 @@ import redis
 
 from app.clients.redis_client import UNAVAILABLE, RedisStreams
 from app.core.errors import PermanentEventError, TransientEventError
-from app.schemas.analysis_result import DEAD_LETTERED, STARTED, AnalysisResult, envelope, failed_result, started_payload
-from app.schemas.audio_event import parse_event_entry
-from app.services.processing_pipeline import ProcessingPipeline
+from app.schemas.AnalysisResultSchema import DEAD_LETTERED, STARTED, AnalysisResult, envelope, failed_result, started_payload
+from app.schemas.AudioEventSchema import parse_event_entry
+from app.services.ProcessingPipelineService import ProcessingPipeline
 
 log = logging.getLogger(__name__)
 CLAIM_INTERVAL_SECONDS = 15

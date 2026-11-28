@@ -337,7 +337,7 @@ function Invoke-Start {
         AUDIO_STORE_PATH     = $AudioStore
         OPENBLAS_NUM_THREADS = "4"
     }
-    $ai = Start-ServiceProcess "ai" $AiPython @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "$AiPort") $AiDir $aiEnv
+    $ai = Start-ServiceProcess "ai" $AiPython @("-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "$AiPort") $AiDir $aiEnv
     Wait-Until "ai" $ai { (Get-HttpStatus "http://127.0.0.1:$AiPort/health/ready") -eq 200 } $TimeoutSeconds
     Write-Ok "AI service ready - $($Urls.ai)"
     }

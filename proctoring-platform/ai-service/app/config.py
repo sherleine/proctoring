@@ -10,7 +10,7 @@ from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-SERVICE_ROOT = Path(__file__).resolve().parents[2]
+SERVICE_ROOT = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
@@ -37,32 +37,32 @@ class Settings(BaseSettings):
     
     vad_threshold: float = Field(0.5, alias="VAD_THRESHOLD", gt=0, lt=1)
     
-    transcription_enabled: bool = Field(True, alias="TRANSCRIPTION_ENABLED")
+    transcription_enabled: bool = Field(False, alias="TRANSCRIPTION_ENABLED")
     whisper_model: str = Field("base", alias="WHISPER_MODEL")
     whisper_device: Literal["cpu", "cuda"] = Field("cpu", alias="WHISPER_DEVICE")
     whisper_compute_type: str = Field("int8", alias="WHISPER_COMPUTE_TYPE")
     whisper_language: str | None = Field(None, alias="WHISPER_LANGUAGE")
-    # "translate" always yields English text regardless of the spoken language, so a Tier 2 escalation can
-    # compare it against an English question/options even when the candidate answers in another language.
+    # "translate" always yields English text regardless of the spoken language, so the Tier 2 LLM always
+    # reviews an English transcript.
     whisper_task: Literal["transcribe", "translate"] = Field("translate", alias="WHISPER_TASK")
 
 
-    # Tier 2: sends every clip with transcribed speech to a local LLM, with the active exam question, so a
-    # candidate reading the question aloud (or a second voice merely overlapping, not assisting) is told apart
-    # from a second voice actually helping - including a clip Tier 1 saw as one voice on its own.
-    escalation_enabled: bool = Field(True, alias="ESCALATION_ENABLED")
+    # Tier 2: sends every clip with transcribed speech to a local LLM, so a second voice merely overlapping
+    # (not assisting) is told apart from a second voice actually helping - including a clip Tier 1 saw as one
+    # voice on its own.
+    escalation_enabled: bool = Field(False, alias="ESCALATION_ENABLED")
     llm_base_url: str = Field("http://localhost:8000/v1", alias="LLM_BASE_URL")
     llm_model: str = Field("", alias="LLM_MODEL")
-    llm_api_key: str = Field("", alias="LLM_API_KEY")  # sent as a Bearer token when set; empty for an open local vLLM
+    llm_api_key: SecretStr | None = Field(None, alias="LLM_API_KEY")
     llm_timeout_seconds: float = Field(20.0, alias="LLM_TIMEOUT_SECONDS", gt=0)
-    llm_max_tokens: int = Field(800, alias="LLM_MAX_TOKENS", ge=100)  # a review answer is ~150-300 tokens
-    # Cheap triage signal only (never a suppression gate on its own - see llm_review_service.review_clip).
-    similarity_enabled: bool = Field(False, alias="SIMILARITY_ENABLED")
-    similarity_model: str = Field("intfloat/multilingual-e5-small", alias="SIMILARITY_MODEL")
-    # Demo/manual-testing only: a POST /debug/analyze endpoint that accepts an uploaded clip directly, bypassing
-    # the backend + Redis entirely (see app/api/debug_analyze.py). Never enable this in a real deployment -
-    # production audio only ever arrives through the backend. Also turns on Swagger (/docs).
+    # Turns on Swagger (/docs) for manual testing of POST /voice/verify. (Name kept so existing .env files work;
+    # the separate /debug/analyze endpoint it used to add has been merged into /voice/verify.)
     debug_analyze_endpoint_enabled: bool = Field(False, alias="DEBUG_ANALYZE_ENDPOINT_ENABLED")
+
+    # How long a registered reference voice (POST /voice/verify, see app/services/VoiceReferenceStoreService.py)
+    # survives in Redis with no activity. Long enough that no real exam should hit it; just a safety net
+    # against an abandoned exam leaving a voiceprint behind forever.
+    voice_reference_ttl_seconds: int = Field(7 * 24 * 3600, alias="VOICE_REFERENCE_TTL_SECONDS", gt=0)
 
     
     

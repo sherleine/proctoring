@@ -1,4 +1,4 @@
-"""Proctoring AI service: Redis worker + health API (see ai-service/README.md)."""
+"""Proctoring AI service. Builds the main router (mounted by main.py) from every feature router."""
 import os
 
 # NumPy's OpenBLAS reserves a buffer per CPU thread when it is first imported; on many-core laptops this can
@@ -10,3 +10,12 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", "4")
 # https://otel.pyannote.ai unless PYANNOTE_METRICS_ENABLED is "false". It is read when pyannote is imported, so it
 # is forced off here, before any pyannote import. Exam metadata never leaves this machine.
 os.environ["PYANNOTE_METRICS_ENABLED"] = "false"
+
+from fastapi import APIRouter  # noqa: E402  (after the environment settings above)
+
+from app.api.health import router as health_router  # noqa: E402
+from app.api.voice_verify import router as voice_verify_router  # noqa: E402
+
+router = APIRouter()
+router.include_router(health_router)
+router.include_router(voice_verify_router)

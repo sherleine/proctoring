@@ -6,7 +6,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
-CONTRACTS_DIR = Path(__file__).with_name("contracts")
+CONTRACTS_DIR = Path(__file__).resolve().parents[2] / "data" / "contracts"
 
 ENVELOPE = "stream-envelope.v1.json"
 EVENT_MESSAGE = "audio-event-message.v1.json"

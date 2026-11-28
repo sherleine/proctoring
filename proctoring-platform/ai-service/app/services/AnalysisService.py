@@ -1,7 +1,7 @@
 
-from app.schemas.analysis_result import Finding
-from app.services.transcription_service import TranscriptionData
-from app.services.vad_service import VadResult
+from app.schemas.AnalysisResultSchema import Finding
+from app.services.TranscriptionService import TranscriptionData
+from app.services.VadService import VadResult
 
 CLIPPING_RATIO = 0.01  # >= 1 % of samples at full scale
 VERY_QUIET_RMS_DBFS = -50.0

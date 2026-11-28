@@ -4,7 +4,7 @@ import json
 from pydantic import BaseModel
 
 from app.core.errors import PermanentEventError
-from app.schemas.contracts import ENVELOPE, EVENT_MESSAGE, validation_errors
+from app.schemas.ContractSchema import ENVELOPE, EVENT_MESSAGE, validation_errors
 
 SUBMITTED = "audio.event.submitted"
 SUPPORTED_ENVELOPE_VERSION = "1"
@@ -12,11 +12,11 @@ SUPPORTED_ENVELOPE_VERSION = "1"
 
 class AudioRef(BaseModel):
     storage: str
-    uri: str  # the backend's local view; never used to open files
+    uri: str  
     sha256: str
     sizeBytes: int
     contentType: str
-    key: str | None = None  # path relative to the audio store root
+    key: str | None = None  
 
 
 class AudioEventMessage(BaseModel):
@@ -26,7 +26,7 @@ class AudioEventMessage(BaseModel):
     eventId: str
     candidateId: str
     examId: str
-    event: dict  # browser metadata (audio-event-metadata.v1.json)
+    event: dict  
     audioRef: AudioRef
 
     @property

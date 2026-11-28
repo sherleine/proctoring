@@ -9,7 +9,7 @@ import numpy as np
 import soundfile as sf
 
 from app.core.errors import PermanentEventError
-from app.schemas.audio_event import AudioRef
+from app.schemas.AudioEventSchema import AudioRef
 
 KEY_PATTERN = re.compile(r"^ses_[A-Za-z0-9]{20,36}/[a-f0-9]{32}\.wav$")
 SAMPLE_RATE = 16_000

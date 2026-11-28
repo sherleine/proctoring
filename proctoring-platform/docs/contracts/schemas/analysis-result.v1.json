@@ -482,7 +482,7 @@
         "object",
         "null"
       ],
-      "description": "Contract 1.2 (optional). A local LLM's read on a clip Tier 1 already flagged as overlap/multiple-speaker, given the speaker-tagged transcript and the active exam question (when known). Never a verdict and never a replacement for the observations above - attempted=false and modelValid=false are both normal, expected outcomes.",
+      "description": "Contract 1.2 (optional). A local LLM's read on a clip, given the speaker-tagged transcript. Never a verdict and never a replacement for the observations above - attempted=false and modelValid=false are both normal, expected outcomes.",
       "required": [
         "attempted"
       ],
@@ -504,18 +504,8 @@
           ],
           "description": "Set when attempted=true: whether the LLM's reply matched the required JSON schema."
         },
-        "similarityScore": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": -1,
-          "maximum": 1,
-          "description": "Cosine similarity between the main speaker's speech and the question/options, from a small embedding model. A triage signal only, never a suppression gate."
-        },
         "classification": {
           "enum": [
-            "likely_reading_question",
             "likely_benign_other",
             "possible_external_assistance",
             "inconclusive",
@@ -529,20 +519,7 @@
             "mixed",
             "unknown",
             null
-          ],
-          "description": "Only speech attributed to \"main\" can ever be the candidate reading the question aloud."
-        },
-        "matchedQuestionSpan": {
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "number",
-            "minimum": 0
-          },
-          "minItems": 2,
-          "maxItems": 2
+          ]
         },
         "confidence": {
           "type": [

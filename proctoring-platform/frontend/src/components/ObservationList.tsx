@@ -1,83 +1,49 @@
-import type { AnalysisResult, Observation, ObservationType } from "../types/contracts";
+import type { AnalysisResult } from "../types/contracts";
 
-export const OBSERVATION_LABELS: Record<ObservationType, string> = {
-  MULTIPLE_SPEAKERS_DETECTED: "Multiple speakers detected",
-  OVERLAPPING_SPEECH_DETECTED: "Overlapping speech detected",
-  BACKGROUND_CONVERSATION_DETECTED: "Background conversation detected",
-  SPEECH_DETECTED: "Speech detected",
-  NO_SPEECH_DETECTED: "No speech detected",
-  // deprecated aliases (older results)
-  MULTIPLE_SPEAKERS: "Multiple speakers detected",
-  OVERLAPPING_SPEECH: "Overlapping speech detected",
-  BACKGROUND_CONVERSATION: "Background conversation detected",
-  POSSIBLE_EXTERNAL_ASSISTANCE: "Possible external assistance",
-  PHONE_RINGING: "Phone ringing detected",
-  KEYBOARD_TYPING: "Keyboard typing detected",
-  WHISPERING: "Possible whispering",
-  UNUSUAL_SOUND: "Unusual sound detected",
-};
+const CLEARED_CLASSIFICATIONS: ReadonlySet<string> = new Set(["likely_benign_other"]);
 
-const CONFIDENCE_KIND: Record<Observation["confidenceKind"], string> = {
-  "model-score": "model score, not a probability",
-  "calibrated-probability": "calibrated probability",
-  rule: "rule-based",
-};
-
-/** Short "key: value" list of the simple values in the evidence (nested objects are left out). */
-export function evidenceSummary(evidence: Record<string, unknown>): string {
-  return Object.entries(evidence)
-    .filter(([key, v]) => key !== "note" && (typeof v === "number" || typeof v === "string" || typeof v === "boolean"))
-    .map(([key, v]) => `${key}: ${typeof v === "number" ? Number(v.toFixed(3)) : v}`)
-    .join(" · ");
+export interface ReviewSummary {
+  valid: boolean;
+  reason: string;
 }
 
-const INFORMATIONAL: ReadonlySet<string> = new Set(["SPEECH_DETECTED", "NO_SPEECH_DETECTED"]);
+/** Same {valid, reason} as the AI service's POST /analyze (Swagger) - a port of
+ *  ai-service/app/services/review_summary.py; keep the two in step. */
+export function summarize(result: AnalysisResult): ReviewSummary {
+  const flags = (result.observations ?? []).filter((o) => o.category === "review").map((o) => o.observationType as string);
+  const aiReview = result.aiReview ?? null;
 
-/** informational records are never shown as flags; older results without a category are inferred from the type. */
-export function isInformational(o: Observation): boolean {
-  return o.category ? o.category === "informational" : INFORMATIONAL.has(o.observationType);
+  if (flags.length === 0) {
+    return { valid: true, reason: "No overlap, extra voices or external-assistance indicators were detected." };
+  }
+
+  const counts = new Map<string, number>();
+  for (const flag of flags) counts.set(flag, (counts.get(flag) ?? 0) + 1);
+  const flaggedBy = "Flagged by Tier 1: " +
+    [...counts].map(([f, n]) => (n > 1 ? `${f} (x${n})` : f)).join(", ") + ".";
+
+  if (aiReview?.attempted && aiReview.modelValid) {
+    const rationale = aiReview.rationale ?? "";
+    if (aiReview.classification && CLEARED_CLASSIFICATIONS.has(aiReview.classification)) {
+      return { valid: true, reason: `${flaggedBy} AI review cleared it: ${rationale}`.trim() };
+    }
+    return { valid: false, reason: `${flaggedBy} AI review: ${rationale}`.trim() };
+  }
+
+  if (aiReview?.attempted) {
+    return { valid: false, reason: `${flaggedBy} AI review did not complete, so the flag stands unconfirmed - needs a human look.` };
+  }
+
+  return { valid: false, reason: `${flaggedBy} Tier 2 review was not run (${aiReview?.reason ?? "unknown reason"}).` };
 }
 
-function absoluteTime(eventStartedAt: string, offsetSeconds: number): string {
-  return new Date(Date.parse(eventStartedAt) + offsetSeconds * 1000).toLocaleTimeString();
-}
-
-/** The voice-check line for a speech event (no observation needed to show it). */
-export function voiceCheck(result: AnalysisResult | null): string | null {
-  // Voices heard in the clip, from speaker diarization. No voice sample is used, so no identity is claimed.
-  const d = result?.diarization;
-  if (!d?.available || typeof d.speakerCount !== "number") return null;
-  const voices = d.distinctVoices ?? d.speakerCount;
-  return voices <= 1 ? "Voices: one" : `Voices: ${voices} different voices`;
-}
-
-export function ObservationList({ result, eventStartedAt }: { result: AnalysisResult | null; eventStartedAt: string }) {
-  const all = result?.observations ?? [];
-  const info = all.filter(isInformational);
-  const observations = all.filter((o) => !isInformational(o));
-  const check = voiceCheck(result);
-  const infoLine = info.length > 0
-    ? <div className="small">{info.map((o) => `${OBSERVATION_LABELS[o.observationType] ?? o.observationType}` +
-        (o.observationType === "SPEECH_DETECTED" ? ` (${Number(o.supportingEvidence.speechSeconds ?? 0).toFixed(1)} s)` : "")).join(" · ")}</div>
-    : null;
-  if (observations.length === 0) return check || infoLine ? <div>{infoLine}{check && <div className="small">{check}</div>}</div> : null;
+export function ObservationList({ result }: { result: AnalysisResult | null; eventStartedAt?: string }) {
+  if (!result || result.status !== "completed") return null;
+  const { valid, reason } = summarize(result);
   return (
     <div className="observations">
-      {infoLine}
-      {check && <div className="small">{check}</div>}
-      <ul>
-        {observations.map((o) => (
-          <li key={o.observationId} className="observation">
-            <span className="badge warn">{OBSERVATION_LABELS[o.observationType] ?? o.observationType}</span>{" "}
-            <span className="small">
-              {absoluteTime(eventStartedAt, o.startSeconds)} ({o.startSeconds.toFixed(1)}-{o.endSeconds.toFixed(1)} s of the clip,{" "}
-              {(o.endSeconds - o.startSeconds).toFixed(1)} s) · confidence {o.confidence.toFixed(2)} ({CONFIDENCE_KIND[o.confidenceKind]})
-            </span>
-            <div className="small evidence">Evidence: {evidenceSummary(o.supportingEvidence) || "see result"} · {o.modelName}</div>
-          </li>
-        ))}
-      </ul>
-      <div className="small">Potential observations for human review - not a determination of misconduct.</div>
+      <span className={`badge ${valid ? "ok" : "warn"}`}>{valid ? "Valid" : "Invalid"}</span>{" "}
+      <span className="small">{reason}</span>
     </div>
   );
 }

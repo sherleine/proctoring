@@ -1,7 +1,14 @@
-"""Small numeric helpers for float32 audio in [-1, 1]."""
+"""Small stateless audio helpers: levels for float32 audio in [-1, 1], and upload conversion to 16 kHz mono WAV."""
+import io
 import math
+import subprocess
+import tempfile
+from pathlib import Path
 
 import numpy as np
+import soundfile as sf
+
+TARGET_SAMPLE_RATE = 16_000
 
 SILENCE_FLOOR_DBFS = -120.0  # reported instead of -infinity for digital silence (JSON has no infinity)
 QUIET_PEAK_DBFS = -30.0  # quieter recordings are amplified (in memory only) before the models see them
@@ -34,3 +41,38 @@ def normalize_quiet(samples: np.ndarray) -> tuple[np.ndarray, float]:
         return samples, 0.0
     gain_db = min(MAX_GAIN_DB, -3.0 - peak)
     return (samples * (10 ** (gain_db / 20))).astype(np.float32), round(gain_db, 1)
+
+
+def needs_conversion(data: bytes, filename: str) -> bool:
+    """True unless the upload already is a 16 kHz mono PCM16 .wav."""
+    if Path(filename or "").suffix.lower() != ".wav":
+        return True
+    try:
+        info = sf.info(io.BytesIO(data))
+    except Exception:
+        return True
+    return info.samplerate != TARGET_SAMPLE_RATE or info.channels != 1 or info.subtype != "PCM_16"
+
+
+def to_16k_mono_wav(data: bytes, filename: str) -> bytes:
+    """ffmpeg converts whatever was uploaded (wav of any rate/channels, mp3, mp4, mov, webm ...) into 16 kHz mono
+    PCM16 WAV. Raises FileNotFoundError when ffmpeg is not on PATH, ValueError when the file is not audio/video."""
+    suffix = Path(filename or "").suffix or ".bin"
+    with tempfile.TemporaryDirectory() as tmp:
+        src, dst = Path(tmp) / f"input{suffix}", Path(tmp) / "output.wav"
+        src.write_bytes(data)
+        try:
+            subprocess.run(["ffmpeg", "-y", "-i", str(src), "-ar", str(TARGET_SAMPLE_RATE), "-ac", "1", "-f", "wav", str(dst)],
+                           check=True, capture_output=True, timeout=120)
+        except subprocess.CalledProcessError as exc:
+            detail = exc.stderr.decode(errors="replace")[-500:] if exc.stderr else str(exc)
+            raise ValueError(f"Could not decode the uploaded file as audio/video: {detail}") from exc
+        return dst.read_bytes()
+
+
+def wav_duration_seconds(data: bytes) -> float:
+    """Raises ValueError when the bytes are not a readable WAV."""
+    try:
+        return sf.info(io.BytesIO(data)).duration
+    except Exception as exc:
+        raise ValueError(f"Uploaded file is not valid audio: {exc}") from exc

@@ -5,13 +5,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.schemas.contracts import ANALYSIS_RESULT, ANALYSIS_STARTED, ensure_valid
+from app.schemas.ContractSchema import ANALYSIS_RESULT, ANALYSIS_STARTED, ensure_valid
 from app.utils.time_utils import utc_now_iso
 
 STARTED = "audio.analysis.started"
 COMPLETED = "audio.analysis.completed"
 FAILED = "audio.analysis.failed"
-DEAD_LETTERED = "DEAD_LETTERED"  # error.code convention: the processor gave up (event becomes DEAD_LETTERED)
+DEAD_LETTERED = "DEAD_LETTERED" 
 
 FindingType = Literal["CANDIDATE_SPEECH", "MULTIPLE_VOICES", "BACKGROUND_CONVERSATION", "OVERLAPPING_SPEECH",
                       "POSSIBLE_VERBAL_ASSISTANCE", "UNUSUAL_AUDIO", "NO_SPEECH_VERIFIED"]
@@ -40,7 +40,7 @@ class SpeechStage(BaseModel):
 
 class TranscriptSegment(Span):
     text: str
-    speaker: str | None = None  # no diarization in this version
+    speaker: str | None = None 
     avgLogprob: float | None = None
     noSpeechProb: float | None = None
 
@@ -60,7 +60,7 @@ class DiarizationStage(BaseModel):
     speakerCount: int | None = None
     turns: list[dict] = Field(default_factory=list)
     overlaps: list[Span] = Field(default_factory=list)
-    # contract 1.1 additions (optional): per anonymous speaker label, speech amounts, level and voice role
+    
     speakers: list[dict] = Field(default_factory=list)
     distinctVoices: int | None = None
 
@@ -83,17 +83,14 @@ class ErrorInfo(BaseModel):
 
 class AiReview(BaseModel):
     """Tier 2 escalation output (contract 1.2, optional): a local LLM's read on a clip Tier 1 already flagged
-    as overlap/multiple-speaker, given the speaker-tagged transcript and the active exam question. This is
+    as overlap/multiple-speaker, given the speaker-tagged transcript. This is
     never a verdict - attempted=false (with a reason) and modelValid=false are both normal, expected outcomes,
     and the original observations stand on their own regardless of what this says."""
     attempted: bool
-    reason: str | None = None  # set when attempted=false
-    modelValid: bool | None = None  # set when attempted=true: did the LLM's reply match the schema
-    similarityScore: float | None = None  # cosine similarity pre-filter, -1 to 1; null when not computed
-    classification: Literal["likely_reading_question", "likely_benign_other", "possible_external_assistance",
-                           "inconclusive"] | None = None
+    reason: str | None = None  
+    modelValid: bool | None = None  
+    classification: Literal["likely_benign_other", "possible_external_assistance", "inconclusive"] | None = None
     attributedTo: Literal["main", "other", "mixed", "unknown"] | None = None
-    matchedQuestionSpan: list[float] | None = None
     confidence: float | None = None
     rationale: str | None = None
     recommendedReviewPriority: Literal["low", "normal", "high"] | None = None

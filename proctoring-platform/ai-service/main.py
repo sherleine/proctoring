@@ -1,10 +1,12 @@
-"""Service entry point: FastAPI (health only) + the Redis worker thread(s).
+"""Service entry point: creates the FastAPI app, mounts the routers from app/__init__.py, and holds the
+Runtime (clients, models, Redis worker threads). Swagger at /docs when DEBUG_ANALYZE_ENDPOINT_ENABLED=true.
 
-    uvicorn app.main:app --port 8090        (or: python -m app.main)
+    uvicorn main:app --port 8090        (or: python main.py)
 
 Startup: configure logging -> load Silero VAD and faster-whisper once (background thread, so /health/live
-answers immediately) -> start AI_WORKER_CONCURRENCY worker threads. There is no endpoint that accepts audio:
-audio only arrives through the backend and Redis.
+answers immediately) -> start AI_WORKER_CONCURRENCY worker threads. The same pipeline (VAD + diarization +
+ASR + Tier 2 LLM review) serves both audio arriving through Redis and direct uploads to /voice/verify, which
+additionally matches the clip's voice against the candidate's registered reference.
 """
 import logging
 import threading
@@ -12,21 +14,20 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.debug_analyze import router as debug_analyze_router
-from app.api.health import router as health_router
-from app.clients.redis_client import RedisStreams
-from app.core.config import Settings, get_settings
+from app import router
+from app.clients.llm_client import get_llm_client
+from app.clients.redis_client import get_redis_streams
+from app.config import Settings, get_settings
 from app.core.logging import configure_logging
-from app.services.audio_loader import AudioStore
-from app.services.event_worker import EventWorker, default_consumer_name
-from app.services.detection_rules import RulesConfig, ScoreScale
-from app.services.diarization_service import DiarizationConfig, DiarizationService
-from app.services.llm_review_service import VllmClient
-from app.services.processing_pipeline import ProcessingPipeline
-from app.services.similarity_service import SimilarityService
-from app.services.speaker_service import SpeakerService
-from app.services.transcription_service import TranscriptionService
-from app.services.vad_service import VadService
+from app.services.AudioLoaderService import AudioStore
+from app.services.EventWorkerService import EventWorker, default_consumer_name
+from app.services.DetectionRulesService import RulesConfig, ScoreScale
+from app.services.DiarizationService import DiarizationConfig, DiarizationService
+from app.services.ProcessingPipelineService import ProcessingPipeline
+from app.services.SpeakerService import SpeakerService
+from app.services.TranscriptionService import TranscriptionService
+from app.services.VadService import VadService
+from app.services.VoiceReferenceStoreService import VoiceReferenceStore
 
 log = logging.getLogger("app")
 
@@ -36,7 +37,7 @@ class Runtime:
 
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.streams = RedisStreams(settings)
+        self.streams = get_redis_streams()
         self.store = AudioStore(settings.audio_root)
         self.vad = VadService(settings.vad_threshold)
         self.transcriber = TranscriptionService(settings.whisper_model, settings.whisper_device,
@@ -54,19 +55,18 @@ class Runtime:
                               min_overlap_seconds=settings.diarization_min_overlap_seconds),
             token=settings.hf_token.get_secret_value() if settings.hf_token else None,
         ) if settings.diarization_enabled else None
-        self.similarity = SimilarityService(settings.similarity_model) if settings.similarity_enabled else None
-        self.llm = VllmClient(settings.llm_base_url, settings.llm_model,
-                              settings.llm_timeout_seconds, api_key=settings.llm_api_key,
-                              max_tokens=settings.llm_max_tokens) if settings.escalation_enabled else None
+        self.llm = get_llm_client()
+        # Shared by the pipeline and the voice-match decision in app/api/voice_verify.py - same thresholds everywhere.
+        self.rules = RulesConfig(overlap_min_seconds=settings.overlap_min_seconds, multiple_from_overlap=settings.multiple_from_overlap,
+                                 background_level_db=settings.background_level_db,
+                                 assistance_min_indicators=settings.assistance_min_indicators,
+                                 assistance_require_transcript=settings.assistance_require_transcript,
+                                 min_voice_seconds=settings.speaker_min_segment_seconds)
+        self.scale = ScoreScale(same=settings.speaker_same_threshold, different=settings.speaker_different_threshold)
+        self.voice_reference_store = VoiceReferenceStore(self.streams.client, settings.voice_reference_ttl_seconds)
         self.pipeline = ProcessingPipeline(
             self.store, self.vad, self.transcriber, self.speaker, self.diarizer, settings.diarization_min_speech_seconds,
-            RulesConfig(overlap_min_seconds=settings.overlap_min_seconds, multiple_from_overlap=settings.multiple_from_overlap,
-                        background_level_db=settings.background_level_db,
-                        assistance_min_indicators=settings.assistance_min_indicators,
-                        assistance_require_transcript=settings.assistance_require_transcript,
-                        min_voice_seconds=settings.speaker_min_segment_seconds),
-            ScoreScale(same=settings.speaker_same_threshold, different=settings.speaker_different_threshold),
-            escalation_enabled=settings.escalation_enabled, llm=self.llm, similarity=self.similarity)
+            self.rules, self.scale, escalation_enabled=settings.escalation_enabled, llm=self.llm)
         base = settings.consumer_name or default_consumer_name()
         self.workers = [EventWorker(self.streams, self.pipeline,
                                     base if settings.worker_concurrency == 1 else f"{base}-{i + 1}",
@@ -88,8 +88,6 @@ class Runtime:
                 self.diarizer.load()
             if self.transcriber:
                 self.transcriber.load()
-            if self.similarity:
-                self.similarity.load()
         except Exception as exc:  # the API stays up and reports not-ready with the reason
             self.model_error = f"Model loading failed ({type(exc).__name__})"
             log.exception("Model loading failed; the worker will not start")
@@ -120,25 +118,19 @@ async def lifespan(app: FastAPI):
         "whisperModel": settings.whisper_model if settings.transcription_enabled else None, "whisperDevice": settings.whisper_device,
         "computeType": settings.whisper_compute_type, "whisperTask": settings.whisper_task,
         "language": settings.language or "auto", "escalation": settings.escalation_enabled,
-        "similarity": settings.similarity_enabled, "audioStoreAvailable": runtime.store.is_available(),
-        "debugAnalyzeEndpoint": settings.debug_analyze_endpoint_enabled})
-    if settings.debug_analyze_endpoint_enabled:
-        log.warning("DEBUG_ANALYZE_ENDPOINT_ENABLED=true: POST /debug/analyze accepts audio directly - "
-                   "do not enable this in a real deployment")
+        "audioStoreAvailable": runtime.store.is_available(),
+        "swaggerDocs": settings.debug_analyze_endpoint_enabled})
     app.state.runtime = runtime
     runtime.start()
     yield
     runtime.stop()
 
 
-_debug_enabled = get_settings().debug_analyze_endpoint_enabled
 app = FastAPI(title="Proctoring AI service", version="1.0.0", lifespan=lifespan,
-             docs_url="/docs" if _debug_enabled else None, redoc_url=None)
-app.include_router(health_router)
-if _debug_enabled:
-    app.include_router(debug_analyze_router)
+             docs_url="/docs" if get_settings().debug_analyze_endpoint_enabled else None, redoc_url=None)
+app.include_router(router)
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=8090)
+    uvicorn.run("main:app", host="127.0.0.1", port=8090)

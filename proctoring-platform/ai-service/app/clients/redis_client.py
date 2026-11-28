@@ -1,11 +1,12 @@
 
 import logging
+from functools import lru_cache
 
 import redis
 from redis.backoff import ExponentialBackoff
 from redis.retry import Retry
 
-from app.core.config import Settings
+from app.config import Settings, get_settings
 from app.utils.time_utils import utc_now_iso
 
 log = logging.getLogger(__name__)
@@ -83,3 +84,9 @@ class RedisStreams:
 
     def mark_processed(self, session_id: str, event_id: str) -> None:
         self.client.set(self._processed_key(session_id, event_id), utc_now_iso(), ex=PROCESSED_TTL_SECONDS)
+
+
+@lru_cache
+def get_redis_streams() -> RedisStreams:
+    """The one shared Redis connection for this process (streams, processed-markers and voice references)."""
+    return RedisStreams(get_settings())

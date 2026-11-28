@@ -16,7 +16,9 @@ RUN pip install torch==2.15.0 torchaudio==2.11.1 --index-url https://download.py
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+COPY main.py .
 COPY app ./app
+COPY data ./data
 
 RUN useradd --create-home --uid 10001 ai && mkdir -p /models && chown ai /models
 USER ai
@@ -24,4 +26,4 @@ USER ai
 EXPOSE 8090
 HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=5 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/health/ready', timeout=4).status == 200 else 1)"
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8090"]
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8090"]

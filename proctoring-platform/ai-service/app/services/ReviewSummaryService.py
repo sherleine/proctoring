@@ -1,6 +1,6 @@
 
 
-CLEARED_CLASSIFICATIONS = frozenset({"likely_reading_question", "likely_benign_other"})
+CLEARED_CLASSIFICATIONS = frozenset({"likely_benign_other"})
 
 
 def summarize(payload: dict) -> dict:

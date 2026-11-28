@@ -66,8 +66,20 @@ export interface Observation {
 }
 
 
+/** Tier 2 LLM review (contract 1.2, optional). */
+export interface AiReview {
+  attempted: boolean;
+  reason?: string | null;
+  modelValid?: boolean | null;
+  classification?: "likely_benign_other" | "possible_external_assistance" | "inconclusive" | null;
+  attributedTo?: "main" | "other" | "mixed" | "unknown" | null;
+  confidence?: number | null;
+  rationale?: string | null;
+  recommendedReviewPriority?: "low" | "normal" | "high" | null;
+}
+
 export interface AnalysisResult {
-  schemaVersion?: "1.0" | "1.1";
+  schemaVersion?: "1.0" | "1.1" | "1.2";
   status: "completed" | "failed";
   processedAt: string;
   processingMs: number;
@@ -86,6 +98,7 @@ export interface AnalysisResult {
   findings: Finding[];
   error: { code: string; message: string } | null;
   observations?: Observation[];
+  aiReview?: AiReview | null;
 }
 
 
